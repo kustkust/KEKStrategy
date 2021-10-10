@@ -21,6 +21,7 @@ abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
             remMovePoints -= newCell.type.movePointCost
             pos = newPos
             newCell.unit = this
+            owner.updateObservableArea(observableArea)
             return true
         }
         return false

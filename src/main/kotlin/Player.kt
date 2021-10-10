@@ -33,7 +33,7 @@ class Player(val name: String) {
         ResourceType.values().forEach { this[it] = 10 }
     }
 
-    fun changeResource(r: ResourceType, value: Int){
+    fun changeResource(r: ResourceType, value: Int) {
         resource[r] = resource[r]!! + value
     }
 
@@ -212,6 +212,14 @@ class Player(val name: String) {
                 }
             }
         }
+
+    fun updateObservableArea(area: Matrix<ObservableStatus>) =
+        area.matrixForEachIndexed { pos, status ->
+            if (status == ObservableStatus.Observable) {
+                investegatedArea[pos] = ObservableStatus.Investigated
+            }
+        }
+
 
     /**
      * Возвращает данные о том, какие клетки видит игрок
