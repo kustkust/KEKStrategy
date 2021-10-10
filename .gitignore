@@ -1,0 +1,10 @@
+build
+.grable
+.idea
+.build
+grable
+build.gradle.kts
+gradle.properties
+gradlew
+gradlew.bat
+settings.gradle.kts
