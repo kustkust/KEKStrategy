@@ -3,7 +3,6 @@ build
 .idea
 .build
 grable
-build.gradle.kts
 gradle.properties
 gradlew
 gradlew.bat
