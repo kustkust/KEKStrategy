@@ -28,6 +28,7 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
                     mPos.x, mPos.y,
                     G.win.width - mPos.x, G.win.height - mPos.y
                 )
+                gr.color = Color(owner.color.red, owner.color.green, owner.color.blue, 128)
                 selectedBuild!!.paintPreview(gr)
                 gr.color = if (canBuildOn(onMapPos) && owner.canPay(selectedBuild!!.cost))
                     Color.BLACK
