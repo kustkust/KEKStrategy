@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage
 
 object G {
     /**
-     * игровая карта
+     * Игровая карта
      */
     var map = GameMap()
 
@@ -16,14 +16,14 @@ object G {
                 map[x, y].type = Cell.Type.Ground
             }
         }
-
+        map[6,7].type = Cell.Type.Mountain
     }
 
     enum class State {
         Play,
         Win,
     }
-
+    // чекнуть без этого создание картины
     /**
      * Изображение, которое выводится на экран
      */
@@ -105,11 +105,12 @@ object G {
      * Обработка движений мыши
      */
     fun mouseMoved(ev: MouseEvent) {
+        map.mouseMoved(ev)
         curPlayer.mouseMoved(ev)
     }
 
     /**
-     * Обработка нажатий клавишь на клавиатуре
+     * Обработка нажатий клавиш на клавиатуре
      */
     fun keyClicked(ev: KeyEvent) {
         when (ev.keyCode) {

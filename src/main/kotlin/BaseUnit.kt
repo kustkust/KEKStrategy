@@ -17,30 +17,28 @@ abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
         val newPos = pos + dir.offset
         val newCell = G.map[newPos]
         if (remMovePoints >= newCell.type.movePointCost && canMoveTo(newCell)) {
-            G.map[pos].unit = null
+            onCell.unit = null
             remMovePoints -= newCell.type.movePointCost
             pos = newPos
             newCell.unit = this
-            owner.updateObservableArea(observableArea)
+            owner.updateInvestegatedArea(observableArea)
             return true
         }
         return false
     }
 
     override fun mouseMoved(ev: MouseEvent) {
-        if (owner.selectedUnit == this) {
-            val mp = ev.pos / G.map.cs
-            val path: MutableList<Direction>
-            val beg: Vector
-            if (ev.isControlDown) {
-                beg = curDist
-                path = G.map.aStar(beg, mp) { canMoveTo(it) }
-            } else {
-                beg = pos
-                path = G.map.aStar(beg, mp) { it.type in allowedCells }
-            }
-            G.drawTask += { G.map.drawPath(it, beg, path) }
+        val mp = G.map.selectedCellPos
+        val path: MutableList<Direction>
+        val beg: Vector
+        if (ev.isControlDown) {
+            beg = curDist
+            path = G.map.aStar(beg, mp) { canMoveTo(it) }
+        } else {
+            beg = pos
+            path = G.map.aStar(beg, mp) { it.type in allowedCells }
         }
+        G.drawTask += { G.map.drawPath(it, beg, path) }
     }
 
     fun finishMove() {
@@ -73,30 +71,35 @@ abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
     }
 
     override fun mouseClicked(ev: MouseEvent) {
-        if (ev.button == BUTTON3) {
-            val p = Vector(ev.x, ev.y) / G.map.cs
-            val u = G.map[p].unit
-            val b = G.map[p].build
-            if (u != null) {
-                if (canAttack(u)) {
-                    attack(u)
-                    u.selfCheck()
-                }
-            } else if (b != null) {
-                if (owner.own(b)) {
+        when (ev.button) {
+            BUTTON3 -> {
+                val p = G.map.selectedCellPos
+                val u = G.map[p].unit
+                val b = G.map[p].build
+                if (u != null) {
+                    if(u == this){
+                        path.clear()
+                    }
+                    else if (canAttack(u)) {
+                        attack(u)
+                        u.selfCheck()
+                    }
+                } else if (b != null) {
+                    if (owner.own(b)) {
+                        moveControl(ev)
+                    } else if (canAttack(b)) {
+                        attack(b)
+                        b.selfCheck()
+                    }
+                } else {
                     moveControl(ev)
-                } else if (canAttack(b)) {
-                    attack(b)
-                    b.selfCheck()
                 }
-            } else {
-                moveControl(ev)
             }
         }
     }
 
-    fun moveControl(ev: MouseEvent) {
-        val p = Vector(ev.x, ev.y) / G.map.cs
+    private fun moveControl(ev: MouseEvent) {
+        val p = G.map.selectedCellPos
         buildPathTo(p, ev.isControlDown)
         if (ev.clickCount == 2) {
             finishMove()

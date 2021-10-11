@@ -6,7 +6,7 @@ class Cell(var type: Type = Type.Water) {
 
     enum class Type {
         Water {
-            override var movePointCost: Int = 1
+            override var movePointCost: Int = 2
             override var color: Color = Color(0, 0, 255)
         },
         Ground {

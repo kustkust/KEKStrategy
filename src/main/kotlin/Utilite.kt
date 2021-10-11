@@ -38,7 +38,7 @@ inline fun <reified T> makeMatrix(size: Vector, init: (Vector) -> T) =
 val MouseEvent.pos
     get() = Vector(x, y)
 
-fun makePolygon(points: Array<Vector>) =
+fun makePolygon(vararg points: Vector) =
     Polygon(points.map { it.x }.toIntArray(), points.map { it.y }.toIntArray(), points.size)
 
 val java.awt.Point.toVector

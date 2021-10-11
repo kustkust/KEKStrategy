@@ -6,18 +6,18 @@ import javax.swing.JPanel
 class MainWindow : JFrame() {
     object Panel : JPanel() {
         override fun paint(g: Graphics) {
-            super.paint(g)
-            super.paint(g)
             G.paint(g)
         }
     }
+
+    var isControlDown= false
 
     init {
         setSize(600, 600)
         defaultCloseOperation = EXIT_ON_CLOSE
         setLocationRelativeTo(null)
         isVisible = true
-        isResizable = false
+        isResizable = true
 
         add(Panel)
 
@@ -26,20 +26,22 @@ class MainWindow : JFrame() {
                 //TODO("Not yet implemented")
             }
 
-            override fun keyPressed(e: KeyEvent?) {
-                //TODO("Not yet implemented")
+            override fun keyPressed(e: KeyEvent) {
+                isControlDown = e.isControlDown
             }
 
-            override fun keyReleased(e: KeyEvent?) {
-                G.keyClicked(e!!)
+            override fun keyReleased(e: KeyEvent) {
+                isControlDown = e.isControlDown
+                G.keyClicked(e)
                 Panel.revalidate()
+                //оптимизировать отрисовку
                 Panel.repaint()
             }
         })
         Panel.addMouseListener(object : MouseListener {
             override fun mouseClicked(e: MouseEvent) {
                 G.mouseClicked(e)
-                Panel.revalidate()
+                //Panel.revalidate()
                 Panel.repaint()
             }
 
@@ -67,7 +69,7 @@ class MainWindow : JFrame() {
 
             override fun mouseMoved(e: MouseEvent) {
                 G.mouseMoved(e)
-                repaint()
+                Panel.repaint()
             }
 
         })

@@ -1,5 +1,7 @@
 import java.awt.Color
+import java.awt.Graphics
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_Q
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 
@@ -38,31 +40,24 @@ class Player(val name: String) {
     }
 
     /**
-     * Выбранный юнит. Если выбран юнит то selectedBuild обязательно null,
-     * возможно стоит объединить с selectedBuild
+     * Выбранный юнит. Если выбран не юнит или выбранно здание то возвращает null
      */
-    var selectedUnit: BaseUnit? = if (units.isNotEmpty()) units.first() else null
+    var selectedUnit: BaseUnit?
         set(value) {
-            if (value != null && selectedBuild != null) {
-                selectedBuild = null
-            }
-            field = value
+            selectedEntity = value
         }
+        get() = if(selectedEntity is BaseUnit) selectedEntity as BaseUnit else null
 
     /**
-     * Выбранное здание. Если здание выбрано, то selectedUnit обязательно null,
-     * возможно стоит объединить с selectedUnit
+     * Выбранное здание. Если здание не выбрано или выбран юнит, то возвращает null
      */
-    var selectedBuild: BaseBuild? = null
+    var selectedBuild: BaseBuild?
         set(value) {
-            if (value != null && selectedUnit != null) {
-                selectedUnit = null
-            }
-            field = value
+            selectedEntity = value
         }
+        get() = if(selectedEntity is BaseBuild) selectedEntity as BaseBuild else null
 
-    val selectedEntity: BaseEntity?
-        get() = selectedUnit ?: selectedBuild
+    var selectedEntity: BaseEntity? = if(entitys.isNotEmpty()) entitys[0] else null
 
     /**
      * Цвет игрока, отражается на юнитах и зданиях
@@ -75,7 +70,7 @@ class Player(val name: String) {
     fun mouseClicked(ev: MouseEvent) {
         var doSomething = false
         if (ev.button == BUTTON1) {
-            val pos = Vector(ev.x, ev.y) / G.map.cs
+            val pos = G.map.selectedCellPos
             val u = G.map[pos].unit
             val b = G.map[pos].build
             if (own(u) && own(b)) {
@@ -103,7 +98,28 @@ class Player(val name: String) {
     }
 
     fun keyClicked(ev: KeyEvent) {
+        when(ev.keyCode){
+            VK_Q->selectedEntity = null
+        }
         selectedEntity?.keyClicked(ev)
+    }
+
+    fun pain(g:Graphics) {
+        if(G.map.selectedCellChanged) {
+            selectedUnit?.apply {
+                val mp = G.map.selectedCellPos
+                val path: MutableList<Direction>
+                val beg: Vector
+                if (G.win.isControlDown) {
+                    beg = curDist
+                    path = G.map.aStar(beg, mp) { canMoveTo(it) }
+                } else {
+                    beg = pos
+                    path = G.map.aStar(beg, mp) { canMoveTo(it) }
+                }
+                G.map.drawPath(g, beg, path)
+            }
+        }
     }
 
     /**
@@ -128,6 +144,7 @@ class Player(val name: String) {
         newUnit.owner = this
         G.map[newUnit.pos].unit = newUnit
         units.add(newUnit)
+        updateInvestegatedArea(newUnit.observableArea)
     }
 
     /**
@@ -150,6 +167,7 @@ class Player(val name: String) {
         newBuild.owner = this
         G.map[newBuild.pos].build = newBuild
         builds.add((newBuild))
+        updateInvestegatedArea(newBuild.observableArea)
     }
 
     /**
@@ -179,7 +197,8 @@ class Player(val name: String) {
         if (canPay(cost)) {
             cost.forEach {
                 //val tmp = resource[it.key]?.minus(it.value)!!
-                resource[it.key] = resource[it.key]?.minus(it.value)!!
+                //resource[it.key] = resource[it.key]?.minus(it.value)!!
+                changeResource(it.key, -it.value)
             }
             return true
         }
@@ -202,24 +221,19 @@ class Player(val name: String) {
         makeMatrix(G.map.size) { ObservableStatus.NotInvestigated }
 
     /**
-     * Обновляет investegatedArea согласно с расположением юнитов и строений
+     * Обновляет investegatedArea согласно с расположением юнитов и строений, по идее
+     * такой вариант метода не нужен, так ка квсе сущности автоматически обновляют
+     * investegatedArea
      */
-    fun updateObservableArea() =
-        entitys.forEach {
-            it.observableArea.matrixForEachIndexed { pos, status ->
-                if (status == ObservableStatus.Observable) {
-                    investegatedArea[pos] = ObservableStatus.Investigated
-                }
-            }
-        }
+    fun updateInvestegatedArea() =
+        entitys.forEach { updateInvestegatedArea(it.observableArea) }
 
-    fun updateObservableArea(area: Matrix<ObservableStatus>) =
+    fun updateInvestegatedArea(area: Matrix<ObservableStatus>) =
         area.matrixForEachIndexed { pos, status ->
             if (status == ObservableStatus.Observable) {
                 investegatedArea[pos] = ObservableStatus.Investigated
             }
         }
-
 
     /**
      * Возвращает данные о том, какие клетки видит игрок

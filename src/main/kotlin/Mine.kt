@@ -4,7 +4,21 @@ import java.awt.event.MouseEvent
 
 class Mine(p: Vector) : BaseBuild(p) {
     override fun paint(g: Graphics) {
-        //TODO("Not yet implemented")
+        val cs = G.map.cs
+        val p = pos * cs
+        g.color = owner.color
+        g.fillPolygon(
+            makePolygon(
+                p + Vector(2, cs / 2),
+                p + Vector(cs - 2, cs / 2),
+                p + Vector(cs - 2, cs - 2),
+                p + Vector(cs * 2 / 3, cs - 2),
+                p + Vector(cs * 2 / 3, cs * 3 / 4),
+                p + Vector(cs / 3, cs * 3 / 4),
+                p + Vector(cs / 3, cs - 2),
+                p + Vector(2, cs - 2)
+            )
+        )
     }
 
     override fun endTurn() {
@@ -20,7 +34,7 @@ class Mine(p: Vector) : BaseBuild(p) {
     }
 
     override fun mouseMoved(ev: MouseEvent) {
-        TODO("Not yet implemented")
+        //TODO("Not yet implemented")
     }
 
     override fun keyClicked(ev: KeyEvent) {
@@ -47,9 +61,16 @@ class Mine(p: Vector) : BaseBuild(p) {
         override fun paintPreview(g: Graphics) {
             val cs = G.map.cs
             g.fillPolygon(
-                intArrayOf(cs / 2, 2, cs - 2),
-                intArrayOf(2, cs - 2, cs - 2),
-                3
+                makePolygon(
+                    Vector(2, cs / 2),
+                    Vector(cs - 2, cs / 2),
+                    Vector(cs - 2, cs - 2),
+                    Vector(cs * 2 / 3, cs - 2),
+                    Vector(cs * 2 / 3, cs * 3 / 4),
+                    Vector(cs / 3, cs * 3 / 4),
+                    Vector(cs / 3, cs - 2),
+                    Vector(2, cs - 2)
+                )
             )
         }
 

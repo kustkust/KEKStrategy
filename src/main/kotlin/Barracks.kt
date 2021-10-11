@@ -59,7 +59,7 @@ class Barracks(pos: Vector) : BaseBuild(pos) {
     }
 
     override fun keyClicked(ev: KeyEvent) {
-        if (ev.keyCode in VK_1..min(VK_9, creatableUnits.size+VK_1)) {
+        if (ev.keyCode in VK_1..min(VK_9, creatableUnits.size + VK_1 - 1)) {
             spawnUnit(ev.keyCode - VK_1)
         }
     }
@@ -71,6 +71,7 @@ class Barracks(pos: Vector) : BaseBuild(pos) {
             g.fillRect(2, G.map.cs / 2 + 2, G.map.cs - 4, G.map.cs / 2 - 2)
 
         }
+
         override val cost: Map<ResourceType, Int> = mapOf(ResourceType.Gold to 5)
         override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Ground)
     }

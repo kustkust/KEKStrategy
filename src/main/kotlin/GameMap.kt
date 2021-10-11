@@ -1,9 +1,10 @@
 import java.awt.Color
 import java.awt.Graphics
+import java.awt.event.MouseEvent
 
 class GameMap(var width: Int = 20, var height: Int = 20) {
     /**
-     * Размер карты, можно изменить после создания карты но лучше не надо
+     * Размер карты, можно изменить после создания карты, но лучше не надо
      */
     var size
         get() = Vector(width, height)
@@ -26,8 +27,8 @@ class GameMap(var width: Int = 20, var height: Int = 20) {
     operator fun get(x: Int, y: Int) = cells[x][y]
 
     fun paint(g: Graphics) {
-        G.curPlayer.updateObservableArea()
         val curPlayerObs = G.curPlayer.observableArea
+        //оптимизировать отрисовку
         cells.matrixForEachIndexed { x, y, cell ->
             if (curPlayerObs[x][y] == ObservableStatus.NotInvestigated) {
                 g.color = Color.BLACK
@@ -65,6 +66,32 @@ class GameMap(var width: Int = 20, var height: Int = 20) {
             g.drawRect(pos.x * cs + 1, pos.y * cs + 1, cs - 2, cs - 2)
         }
     }
+
+    fun mouseMoved(ev: MouseEvent) {
+        val tmp = ev.pos / cs
+        if(inMap(tmp)) {
+            selectedCellChanged = tmp != ev.pos
+            selectedCellPos = tmp
+        }
+    }
+
+    /**
+     * Истина, если после последнего движения мыши изменилась выбранная клетка
+     */
+    var selectedCellChanged: Boolean = false
+        private set
+
+    /**
+     * Позиция выбранной клетки карты
+     */
+    var selectedCellPos: Vector = Vector(0, 0)
+        private set
+
+    /**
+     * Выбранная клетка карты, над которой сейчас находится мышь
+     */
+    val selectedCell: Cell
+        get() = this[selectedCellPos]
 
     /**
      * Рисует заданный маршрут

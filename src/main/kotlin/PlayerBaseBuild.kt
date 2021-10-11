@@ -20,9 +20,9 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
         g.color = Color.BLACK
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
 
-        if (selectedBuild != null) {
+        if (selectedBuild != null && owner.selectedBuild == this) {
             G.drawTask += {
-                val onMapPos = G.win.mPos / G.map.cs
+                val onMapPos = G.map.selectedCellPos
                 val mPos = onMapPos * G.map.cs
                 val gr = it.create(
                     mPos.x, mPos.y,
@@ -39,11 +39,11 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
         }
     }
 
-    private fun canBuildOn(pos: Vector) = G.map[pos].type in selectedBuild!!.allowedCells &&
-            owner.observableArea[pos] != ObservableStatus.NotInvestigated &&
-            pos.cellDistance(pos) <= maxBuildDistance &&
-            G.map[pos].build == null &&
-            (G.map[pos].unit == null || owner.own(G.map[pos].unit))
+    private fun canBuildOn(cellPos: Vector) = G.map[cellPos].type in selectedBuild!!.allowedCells &&
+            owner.observableArea[cellPos] != ObservableStatus.NotInvestigated &&
+            cellPos.cellDistance(pos) <= maxBuildDistance &&
+            G.map[cellPos].build == null &&
+            (G.map[cellPos].unit == null || owner.own(G.map[cellPos].unit))
 
     override fun endTurn() {
         owner.resource.keys.forEach {
@@ -57,7 +57,7 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
 
     override fun mouseClicked(ev: MouseEvent) {
         if (selectedBuild != null) {
-            val p = ev.pos / G.map.cs
+            val p = G.map.selectedCellPos
             when (ev.button) {
                 MouseEvent.BUTTON1 ->
                     if (canBuildOn(p) &&
@@ -77,7 +77,7 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
 
     override fun keyClicked(ev: KeyEvent) {
         if (owner.selectedBuild == this) {
-            if (ev.keyCode in VK_1..min(VK_9, buildList.size + VK_1)) {
+            if (ev.keyCode in VK_1..min(VK_9, buildList.size + VK_1 - 1)) {
                 selectedBuild = buildList[ev.keyCode - VK_1]
             }
         }
