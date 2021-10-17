@@ -1,5 +1,9 @@
 import java.awt.Polygon
 import java.awt.event.MouseEvent
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.round
+import kotlin.math.sqrt
 
 typealias Matrix<T> = Array<Array<T>>
 
@@ -15,12 +19,23 @@ fun <T> Matrix<T>.matrixForEachIndexed(iter: (Int, Int, T) -> Unit) =
         }
     }
 
+fun <T> Matrix<T>.matrixForEachIndexed(x0: Int, x1: Int, y0: Int, y1: Int, iter: (Int, Int, T) -> Unit) {
+    for (x in x0 until x1) {
+        for (y in y0 until y1) {
+            iter(x, y, this[x][y])
+        }
+    }
+}
+
 fun <T> Matrix<T>.matrixForEachIndexed(iter: (Vector, T) -> Unit) =
     this.forEachIndexed { x, row ->
         row.forEachIndexed { y, cell ->
             iter(Vector(x, y), cell)
         }
     }
+
+fun <T> Matrix<T>.matrixForEachIndexed(pos: Vector, size: Vector, iter: (Int, Int, T) -> Unit) =
+    matrixForEachIndexed(pos.x, pos.x + size.x, pos.y, pos.y + size.y, iter)
 
 inline fun <reified T> makeMatrix(width: Int, height: Int, init: (Int, Int) -> T) =
     Matrix(width) { x ->
@@ -42,4 +57,42 @@ fun makePolygon(vararg points: Vector) =
     Polygon(points.map { it.x }.toIntArray(), points.map { it.y }.toIntArray(), points.size)
 
 val java.awt.Point.toVector
-    get() = Vector(x,y)
+    get() = Vector(x, y)
+
+fun getCellLine(p0: Vector, p1: Vector): MutableList<Vector> {
+    val l = mutableListOf<Vector>()
+    if (abs(p0.x - p1.x) > abs(p0.y - p1.y)) {
+        val k = (p1.y - p0.y).toDouble() / (p1.x - p0.x).toDouble()
+        val b = p0.y - k * p0.x
+        val r = if (p0.x < p1.x) p0.x..p1.x else p1.x..p0.x
+        for (i in r) {
+            l += Vector(i, round(k * i + b).toInt())
+        }
+    } else {
+        val k = (p1.x - p0.x).toDouble() / (p1.y - p0.y).toDouble()
+        val b = p0.x - k * p0.y
+        val r = if (p0.y < p1.y) p0.y..p1.y else p1.y..p0.y
+        for (i in r) {
+            l += Vector(round(k * i + b).toInt(), i)
+        }
+    }
+    return l
+}
+
+fun getCellCircle(p: Vector, r: Int): MutableList<Vector> {
+    val tmp = arrayListOf<Vector>()
+    for (x in 0..floor(r / sqrt(2.0)).toInt()) {
+        tmp += Vector(x, round(sqrt((r * r - x * x).toDouble())).toInt())
+    }
+    val rmp = tmp.asReversed()
+    return (tmp.map { Vector(it.x, it.y) + p } +
+            rmp.map { Vector(it.y, it.x) + p } +
+            tmp.map { Vector(-it.y, it.x) + p } +
+            rmp.map { Vector(it.x, -it.y) + p } +
+            tmp.map { Vector(-it.x, -it.y) + p } +
+            rmp.map { Vector(-it.y, -it.x) + p } +
+            tmp.map { Vector(it.y, -it.x) + p } +
+            rmp.map { Vector(-it.x, it.y) + p }
+            ).toMutableList()
+
+}

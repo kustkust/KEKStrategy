@@ -1,11 +1,12 @@
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import kotlin.math.abs
 
 class Mine(p: Vector) : BaseBuild(p) {
     override fun paint(g: Graphics) {
         val cs = G.map.cs
-        val p = pos * cs
+        val p = paintPos
         g.color = owner.color
         g.fillPolygon(
             makePolygon(
@@ -22,7 +23,7 @@ class Mine(p: Vector) : BaseBuild(p) {
     }
 
     override fun endTurn() {
-        //TODO("Not yet implemented")
+        //TO DO("Not yet implemented")
     }
 
     override fun newTurn() {
@@ -30,25 +31,27 @@ class Mine(p: Vector) : BaseBuild(p) {
     }
 
     override fun mouseClicked(ev: MouseEvent) {
-        //TODO("Not yet implemented")
+        //TO DO("Not yet implemented")
     }
 
     override fun mouseMoved(ev: MouseEvent) {
-        //TODO("Not yet implemented")
+        //TO DO("Not yet implemented")
     }
 
     override fun keyClicked(ev: KeyEvent) {
-        //TODO("Not yet implemented")
+        //TO DO("Not yet implemented")
     }
 
-    override val observableArea: Matrix<ObservableStatus>
-        get() = makeMatrix(G.map.size) {
-            if (pos.cellDistance(it) < 2) {
-                ObservableStatus.Observable
-            } else {
-                ObservableStatus.Investigated
+    override fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit) {
+        for (i in -2..2) {
+            for (j in -2 + abs(i)..2 - abs(i)) {
+                val dp = pos + Vector(i, j)
+                if (G.map.inMap(dp)) {
+                    iter(dp)
+                }
             }
         }
+    }
 
     override val allowedCells: MutableList<Cell.Type>
         get() = Factory.allowedCells
@@ -76,7 +79,7 @@ class Mine(p: Vector) : BaseBuild(p) {
 
         override val cost: Cost = mapOf(
             ResourceType.Gold to 10,
-            ResourceType.Tree to 10
+            ResourceType.Tree to 10,
         )
 
         override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Mountain)

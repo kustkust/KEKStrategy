@@ -4,6 +4,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_1
 import java.awt.event.KeyEvent.VK_9
 import java.awt.event.MouseEvent
+import kotlin.math.abs
 import kotlin.math.min
 
 class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
@@ -14,28 +15,26 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
 
     override fun paint(g: Graphics) {
         g.color = owner.color
-        val p = pos * G.map.cs
+        val p = paintPos
         g.fillRect(p.x + 2, p.y + 2, G.map.cs - 4, G.map.cs - 4)
         //g.fillPolygon(makePolygon(arrayOf(Vector())))
         g.color = Color.BLACK
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
 
         if (selectedBuild != null && owner.selectedBuild == this) {
-            G.drawTask += {
-                val onMapPos = G.map.selectedCellPos
-                val mPos = onMapPos * G.map.cs
-                val gr = it.create(
-                    mPos.x, mPos.y,
-                    G.win.width - mPos.x, G.win.height - mPos.y
-                )
-                gr.color = Color(owner.color.red, owner.color.green, owner.color.blue, 128)
-                selectedBuild!!.paintPreview(gr)
-                gr.color = if (canBuildOn(onMapPos) && owner.canPay(selectedBuild!!.cost))
-                    Color.BLACK
-                else
-                    Color.RED
-                gr.drawRect(0, 0, G.map.cs, G.map.cs)
-            }
+            val onMapPos = G.map.selectedCellPos
+            val mPos = (onMapPos - G.map.cellTranslation) * G.map.cs
+            val gr = g.create(
+                mPos.x, mPos.y,
+                G.win.width, G.win.height
+            )
+            gr.color = Color(owner.color.red, owner.color.green, owner.color.blue, 128)
+            selectedBuild!!.paintPreview(gr)
+            gr.color = if (canBuildOn(onMapPos) && owner.canPay(selectedBuild!!.cost))
+                Color.BLACK
+            else
+                Color.RED
+            gr.drawRect(0, 0, G.map.cs, G.map.cs)
         }
     }
 
@@ -49,10 +48,11 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
         owner.resource.keys.forEach {
             owner.changeResource(it, 10)
         }
+        selectedBuild = null
     }
 
     override fun newTurn() {
-        //TODO("Not yet implemented")
+        //TO DO("Not yet implemented")
     }
 
     override fun mouseClicked(ev: MouseEvent) {
@@ -87,17 +87,18 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
         super.selfCheck()
         //тут по идее должен быть код для проигрыша игрока в случае разрушения
         //его базы
-        //TODO("Not yet implemented")
     }
 
-    override val observableArea: Matrix<ObservableStatus>
-        get() = makeMatrix(G.map.size) {
-            if (pos.cellDistance(it) < 2) {
-                ObservableStatus.Observable
-            } else {
-                ObservableStatus.Investigated
+    override fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit) {
+        for (i in -2..2) {
+            for (j in -2 + abs(i)..2 - abs(i)) {
+                val dp = pos + Vector(i, j)
+                if (G.map.inMap(dp)) {
+                    iter(dp)
+                }
             }
         }
+    }
 
     private var selectedBuild: BaseFactory? = null
 

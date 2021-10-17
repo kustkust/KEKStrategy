@@ -2,59 +2,30 @@ import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
-import java.awt.image.BufferedImage
 
 object G {
     /**
      * Игровая карта
      */
-    var map = GameMap()
-
-    init {
-        for (x in 3..15) {
-            for (y in 7..15) {
-                map[x, y].type = Cell.Type.Ground
-            }
-        }
-        map[6,7].type = Cell.Type.Mountain
-    }
+    lateinit var map: GameMap
 
     enum class State {
+        Menu,
         Play,
         Win,
     }
-    // чекнуть без этого создание картины
-    /**
-     * Изображение, которое выводится на экран
-     */
-    private val img = BufferedImage(
-        map.width * map.cs,
-        map.height * map.cs,
-        BufferedImage.TYPE_INT_RGB
-    )
+
+    var state = State.Play
 
     /**
      * Список игроков
      */
-    var players: Array<Player> = arrayOf(
-        Player("1").apply {
-            color = Color.RED
-            addUnit(MeleeUnit(Vector(10, 10)))
-            addBuild(PlayerBaseBuild(Vector(7, 7)))
-            addBuild(Barracks(Vector(8, 7)))
-        },
-        Player("2").apply {
-            color = Color.ORANGE
-            addUnit(MeleeUnit(Vector(10, 11)))
-            addBuild(PlayerBaseBuild(Vector(13, 13)))
-            addBuild(Barracks(Vector(12, 13)))
-        }
-    )
+    private lateinit var players: Array<Player>
 
     /**
      * Номер текущего игрока
      */
-    var curPlayerId = 0
+    private var curPlayerId = 0
 
     /**
      * Текущий игрок
@@ -69,59 +40,131 @@ object G {
      */
     val drawTask = mutableListOf<(Graphics) -> Unit>()
 
+    init {
+        startGame()
+    }
+
+    fun startGame() {
+        map = GameMap(1000, 1000)
+        map.generateMapByTwoPoints(Vector(2, 2), 4, Vector(95, 95), 2, 1)
+        map.fogOfWar = true
+        players = arrayOf(
+            Player("1").apply {
+                color = Color.RED
+                addUnit(MeleeUnit(Vector(10, 10)))
+                addBuild(PlayerBaseBuild(Vector(7, 7)))
+                addBuild(Barracks(Vector(8, 7)))
+            },
+            Player("2").apply {
+                color = Color.ORANGE
+                addUnit(MeleeUnit(Vector(10, 11)))
+                addBuild(PlayerBaseBuild(Vector(13, 13)))
+                addBuild(Barracks(Vector(12, 13)))
+            }
+        )
+        /*for (x in 3..15) {
+            for (y in 7..15) {
+                map[x, y].type = Cell.Type.Ground
+            }
+        }
+        map[6,7].type = Cell.Type.Mountain*/
+        curPlayer.newTurn()
+    }
+
     /**
      * Рисует игру
      */
     fun paint(g: Graphics) {
-        val ig = img.graphics
-        ig.clearRect(0, 0, img.width, img.height)
-        map.paint(ig)
-        ig.color = curPlayer.color
-        var resStr = ""
-        curPlayer.resource.forEach {
-            resStr += it.key.name + ":" + it.value.toString() + " "
+        when (state) {
+            State.Play -> {
+                //val ig = img.graphics
+                g.clearRect(0, 0, map.width * map.cs, map.height * map.cs)
+                map.paint(g)
+                curPlayer.paint(g)
+                g.color = curPlayer.color
+                var resStr = ""
+                curPlayer.resource.forEach {
+                    resStr += it.key.name + ":" + it.value.toString() + " "
+                }
+                g.drawString(
+                    "player:${curPlayer.name} $resStr",
+                    0,
+                    g.font.size
+                )
+
+                drawTask.forEach { it(g) }
+                drawTask.clear()
+
+                //g.drawImage(img, 0, 0, null)
+            }
+            else -> {
+
+            }
         }
-        ig.drawString(
-            "player:${curPlayer.name} $resStr",
-            0,
-            ig.font.size
-        )
-
-        drawTask.forEach { it(img.graphics) }
-        drawTask.clear()
-
-        g.drawImage(img, 0, 0, null)
     }
 
     /**
      * Обработка нажатий кнопок мыши
      */
     fun mouseClicked(ev: MouseEvent) {
-        //val posInMapCord = pos/map.cs
-        curPlayer.mouseClicked(ev)
+        when (state) {
+            State.Play -> {
+                //val posInMapCord = pos/map.cs
+                curPlayer.mouseClicked(ev)
+            }
+            else -> {
+
+            }
+        }
     }
 
     /**
      * Обработка движений мыши
      */
     fun mouseMoved(ev: MouseEvent) {
-        map.mouseMoved(ev)
-        curPlayer.mouseMoved(ev)
+        when (state) {
+            State.Play -> {
+                map.mouseMoved(ev)
+                curPlayer.mouseMoved(ev)
+            }
+            else -> {
+
+            }
+        }
     }
 
     /**
      * Обработка нажатий клавиш на клавиатуре
      */
     fun keyClicked(ev: KeyEvent) {
-        when (ev.keyCode) {
-            KeyEvent.VK_SPACE -> {
-                curPlayer.endTurn()
-                curPlayerId++
-                curPlayerId %= players.size
-                curPlayer.newTurn()
+        when (state) {
+            State.Play -> {
+                when (ev.keyCode) {
+                    KeyEvent.VK_SPACE -> {
+                        curPlayer.endTurn()
+                        curPlayerId++
+                        curPlayerId %= players.size
+                        curPlayer.newTurn()
+                    }
+                }
+                curPlayer.keyClicked(ev)
+                map.keyClicked(ev)
+            }
+            else -> {
+
             }
         }
-        curPlayer.keyClicked(ev)
+    }
+
+    fun keyPressed(ev: KeyEvent) {
+        when (state) {
+            State.Play -> {
+                map.keyPressed(ev)
+            }
+            else -> {
+                
+            }
+        }
     }
 
     /**
@@ -134,12 +177,6 @@ object G {
      */
     @JvmStatic
     fun main(a: Array<String>) {
-        /*val m1 = makeMatrix(2,2){_, _ -> Cell.Type.Mountain}
-        val m2 = m1.matrixClone()
-        m2[0][0]=Cell.Type.Ground
-        println(m1[0][0])
-        println(m2[0][0])
-        readLine()*/
         win = MainWindow()
     }
 }

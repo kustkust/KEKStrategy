@@ -15,15 +15,61 @@ abstract class BaseEntity(var pos: Vector = Vector(0, 0)) {
         private var idCounter = 0
     }
 
+    val paintPos: Vector
+        get() = (pos - G.map.cellTranslation) * G.map.cs
+
+    /**
+     * Рисует сущность на карте
+     */
     abstract fun paint(g: Graphics)
-    abstract fun endTurn()
+
+    /**
+     * Вызывается в начале хода владельца
+     */
     abstract fun newTurn()
+
+    /**
+     * Вызывается в конце хода владельца
+     */
+    abstract fun endTurn()
+
+    /**
+     * Проверяет себя, например жива ли сущность и если нет, то удаляется
+     */
     abstract fun selfCheck()
+
+    /**
+     * Обработка нажатий клавиш мыши
+     */
     abstract fun mouseClicked(ev: MouseEvent)
+
+    /**
+     * Обработка движений мыши
+     */
     abstract fun mouseMoved(ev: MouseEvent)
+
+    /**
+     * Обработка нажатий клавиш клавиатуры
+     */
     abstract fun keyClicked(ev: KeyEvent)
 
-    abstract val observableArea: Matrix<ObservableStatus>
+    /**
+     * Последовательно вызывает функцию iter для каждой клетки, которую видит сущность
+     */
+    abstract fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit)
+
+    /**
+     * Обновляет территорию, которую открыл владелец
+     */
+    open fun updateOwnerInvestigatedArea() =
+        iterateInvestigatedArea { owner.investigatedArea[it] = ObservableStatus.Investigated }
+
+    /**
+     * Обновляет территорию, которую видит владелец
+     */
+    open fun updateOwnerObservableArea() =
+        iterateInvestigatedArea { owner.observableArea[it] = ObservableStatus.Observable }
+
     abstract val allowedCells: MutableList<Cell.Type>
     abstract val cost: Cost
 

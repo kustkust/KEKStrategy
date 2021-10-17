@@ -1,4 +1,5 @@
 import kotlin.math.absoluteValue
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -11,6 +12,24 @@ data class Vector(var x: Int = 0, var y: Int = 0) {
     fun distance(right: Vector) = sqrt((x - right.x).toFloat().pow(2) + (y - right.y).toFloat().pow(2))
     fun cellDistance(right: Vector) =
         (this.x - right.x).absoluteValue + (this.y - right.y).absoluteValue
+    fun minVector(then: Vector) = Vector(min(this.x,then.x), min(this.y,then.y))
+    fun comp(right: Vector): Int {
+        return if (this.x < right.x) {
+            -1
+        } else if (this.x > right.x) {
+            1
+        } else {
+            if (this.y < right.y) {
+                -1
+            } else if (this.y > right.y) {
+                1
+            } else {
+                0
+            }
+        }
+    }
+
+    override fun toString(): String = "($x; $y)"
 
     override fun hashCode(): Int {
         var result = x

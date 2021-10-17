@@ -1,5 +1,6 @@
 import java.awt.Color
 import java.awt.Graphics
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 
 class MeleeUnit(pos: Vector = Vector()) : BaseUnit(pos) {
@@ -28,28 +29,30 @@ class MeleeUnit(pos: Vector = Vector()) : BaseUnit(pos) {
     override fun paint(g: Graphics) {
         val cs = G.map.cs
         g.color = owner.color
-        val p = pos * cs
+        val p = paintPos
         g.fillPolygon(
             intArrayOf(p.x + cs / 2, p.x + 2, p.x + cs - 2),
             intArrayOf(p.y + 2, p.y + cs - 2, p.y + cs - 2),
             3
         )
         g.color = Color.BLACK
-        g.drawString(curHp.toString(), p.x, p.y + g.font.size)
-        g.drawString(remMovePoints.toString(), p.x, p.y + cs)
+        g.drawString(curHp.toString(), p.x + 1, p.y + g.font.size)
+        g.drawString(remMovePoints.toString(), p.x + 1, p.y + cs - 1)
     }
 
-    override val observableArea: Matrix<ObservableStatus>
-        get() = makeMatrix(G.map.size) {
-            if (pos.cellDistance(it) < 2) {
-                ObservableStatus.Observable
-            } else {
-                ObservableStatus.Investigated
+    override fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit) {
+        for (i in -2..2) {
+            for (j in -2 + abs(i)..2 - abs(i)) {
+                val dp = pos + Vector(i, j)
+                if (G.map.inMap(dp)) {
+                    iter(dp)
+                }
             }
         }
+    }
 
     object Factory : BaseFactory {
-        override fun createEntity(pos: Vector): BaseEntity = MeleeUnit(pos)
+        override fun createEntity(pos: Vector) = MeleeUnit(pos)
         override fun paintPreview(g: Graphics) {
             val cs = G.map.cs
             g.fillPolygon(
@@ -59,7 +62,12 @@ class MeleeUnit(pos: Vector = Vector()) : BaseUnit(pos) {
             )
         }
 
-        override val cost: Map<ResourceType, Int> = mapOf(ResourceType.Gold to 5)
-        override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Ground)
+        override val cost = mapOf(ResourceType.Gold to 5)
+        override var allowedCells = mutableListOf(
+            Cell.Type.Ground,
+            Cell.Type.Forest,
+            Cell.Type.Mountain,
+            Cell.Type.Hills
+        )
     }
 }

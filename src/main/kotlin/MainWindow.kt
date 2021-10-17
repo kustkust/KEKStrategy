@@ -1,3 +1,4 @@
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.event.*
 import javax.swing.JFrame
@@ -9,62 +10,71 @@ class MainWindow : JFrame() {
             G.paint(g)
         }
     }
+    var wText = javax.swing.JTextArea("width:")
+    var hText = javax.swing.JTextArea("height:")
+    var wField = javax.swing.JTextField()
+    var hField = javax.swing.JTextField()
+
 
     var isControlDown= false
 
+    val innerSize
+        get() = Vector(Panel.width, Panel.height)
+
     init {
-        setSize(600, 600)
         defaultCloseOperation = EXIT_ON_CLOSE
         setLocationRelativeTo(null)
         isVisible = true
         isResizable = true
-
+        Panel.preferredSize = Dimension(600,600)
         add(Panel)
+        //Panel.isVisible = false
+
+        pack()
 
         addKeyListener(object : KeyListener {
             override fun keyTyped(e: KeyEvent?) {
-                //TODO("Not yet implemented")
+                //TO DO("Not yet implemented")
             }
 
             override fun keyPressed(e: KeyEvent) {
                 isControlDown = e.isControlDown
+                G.keyPressed(e)
+                Panel.repaint()
             }
 
             override fun keyReleased(e: KeyEvent) {
                 isControlDown = e.isControlDown
                 G.keyClicked(e)
-                Panel.revalidate()
-                //оптимизировать отрисовку
                 Panel.repaint()
             }
         })
         Panel.addMouseListener(object : MouseListener {
             override fun mouseClicked(e: MouseEvent) {
                 G.mouseClicked(e)
-                //Panel.revalidate()
                 Panel.repaint()
             }
 
             override fun mousePressed(e: MouseEvent?) {
-                //TODO("Not yet implemented")
+                //TO DO("Not yet implemented")
             }
 
             override fun mouseReleased(e: MouseEvent?) {
-                //TODO("Not yet implemented")
+                //TO DO("Not yet implemented")
             }
 
             override fun mouseEntered(e: MouseEvent?) {
-                //TODO("Not yet implemented")
+                //TO DO("Not yet implemented")
             }
 
             override fun mouseExited(e: MouseEvent?) {
-                //TODO("Not yet implemented")
+                //TO DO("Not yet implemented")
             }
 
         })
         Panel.addMouseMotionListener(object : MouseMotionListener {
             override fun mouseDragged(e: MouseEvent?) {
-                //TODO("Not yet implemented")
+                //TO DO("Not yet implemented")
             }
 
             override fun mouseMoved(e: MouseEvent) {

@@ -3,7 +3,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON3
 
 abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
-    var maxMovePoints = 2
+    var maxMovePoints = 1000
     var remMovePoints = 2
     var maxAttackPerTurn = 1
     var attackRem = 1
@@ -21,30 +21,24 @@ abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
             remMovePoints -= newCell.type.movePointCost
             pos = newPos
             newCell.unit = this
-            owner.updateInvestegatedArea(observableArea)
+            //owner.updateInvestigatedArea(observableArea)
+            updateOwnerInvestigatedArea()
             return true
         }
         return false
     }
 
+
+
     override fun mouseMoved(ev: MouseEvent) {
-        val mp = G.map.selectedCellPos
-        val path: MutableList<Direction>
-        val beg: Vector
-        if (ev.isControlDown) {
-            beg = curDist
-            path = G.map.aStar(beg, mp) { canMoveTo(it) }
-        } else {
-            beg = pos
-            path = G.map.aStar(beg, mp) { it.type in allowedCells }
-        }
-        G.drawTask += { G.map.drawPath(it, beg, path) }
+
     }
 
     fun finishMove() {
         while (path.isNotEmpty() && move(path.first())) {
             path.removeAt(0)
         }
+        owner.updateObservableArea()
     }
 
     override fun endTurn() {
@@ -107,7 +101,7 @@ abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
     }
 
     override fun keyClicked(ev: KeyEvent) {
-        //TODO("Not yet implemented")
+        //TO DO("Not yet implemented")
     }
 
     val curDist: Vector

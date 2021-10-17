@@ -4,6 +4,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_Q
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
+import java.awt.event.MouseEvent.BUTTON3
 
 class Player(val name: String) {
     /**
@@ -17,9 +18,9 @@ class Player(val name: String) {
     val builds = mutableListOf<BaseBuild>()
 
     /**
-     * Список сущьностей, принадлежащих игроку, объединяет список юнитов и зданий
+     * Список сущностей, принадлежащих игроку, объединяет список юнитов и зданий
      */
-    val entitys: List<BaseEntity>
+    val entities: List<BaseEntity>
         get() = List(units.size + builds.size) {
             if (it < units.size) {
                 units[it]
@@ -29,7 +30,7 @@ class Player(val name: String) {
         }
 
     /**
-     * ресурсы игрока
+     * Ресурсы игрока
      */
     val resource = mutableMapOf<ResourceType, Int>().apply {
         ResourceType.values().forEach { this[it] = 10 }
@@ -40,13 +41,13 @@ class Player(val name: String) {
     }
 
     /**
-     * Выбранный юнит. Если выбран не юнит или выбранно здание то возвращает null
+     * Выбранный юнит. Если выбран не юнит или выбрано здание, то возвращает null
      */
     var selectedUnit: BaseUnit?
         set(value) {
             selectedEntity = value
         }
-        get() = if(selectedEntity is BaseUnit) selectedEntity as BaseUnit else null
+        get() = if (selectedEntity is BaseUnit) selectedEntity as BaseUnit else null
 
     /**
      * Выбранное здание. Если здание не выбрано или выбран юнит, то возвращает null
@@ -55,9 +56,9 @@ class Player(val name: String) {
         set(value) {
             selectedEntity = value
         }
-        get() = if(selectedEntity is BaseBuild) selectedEntity as BaseBuild else null
+        get() = if (selectedEntity is BaseBuild) selectedEntity as BaseBuild else null
 
-    var selectedEntity: BaseEntity? = if(entitys.isNotEmpty()) entitys[0] else null
+    var selectedEntity: BaseEntity? = if (entities.isNotEmpty()) entities[0] else null
 
     /**
      * Цвет игрока, отражается на юнитах и зданиях
@@ -65,27 +66,32 @@ class Player(val name: String) {
     var color: Color = Color.RED
 
     /**
-     * Обработка нажатий клавишь мыши
+     * Обработка нажатий клавиш мыши
      */
     fun mouseClicked(ev: MouseEvent) {
         var doSomething = false
-        if (ev.button == BUTTON1) {
-            val pos = G.map.selectedCellPos
-            val u = G.map[pos].unit
-            val b = G.map[pos].build
-            if (own(u) && own(b)) {
-                if (selectedUnit == u) {
-                    selectedBuild = b
-                } else {
+        when (ev.button) {
+            BUTTON1 -> {
+                val pos = G.map.selectedCellPos
+                val u = G.map[pos].unit
+                val b = G.map[pos].build
+                if (own(u) && own(b)) {
+                    if (selectedUnit == u) {
+                        selectedBuild = b
+                    } else {
+                        selectedUnit = u
+                    }
+                    doSomething = true
+                } else if (own(u)) {
                     selectedUnit = u
+                    doSomething = true
+                } else if (own(b)) {
+                    selectedBuild = b
+                    doSomething = true
                 }
-                doSomething = true
-            } else if (own(u)) {
-                selectedUnit = u
-                doSomething = true
-            } else if (own(b)) {
-                selectedBuild = b
-                doSomething = true
+            }
+            BUTTON3 -> {
+                tmpPath = null
             }
         }
         if (!doSomething) {
@@ -98,26 +104,33 @@ class Player(val name: String) {
     }
 
     fun keyClicked(ev: KeyEvent) {
-        when(ev.keyCode){
-            VK_Q->selectedEntity = null
+        when (ev.keyCode) {
+            VK_Q -> selectedEntity = null
         }
         selectedEntity?.keyClicked(ev)
     }
 
-    fun pain(g:Graphics) {
-        if(G.map.selectedCellChanged) {
-            selectedUnit?.apply {
-                val mp = G.map.selectedCellPos
-                val path: MutableList<Direction>
-                val beg: Vector
-                if (G.win.isControlDown) {
-                    beg = curDist
-                    path = G.map.aStar(beg, mp) { canMoveTo(it) }
-                } else {
-                    beg = pos
-                    path = G.map.aStar(beg, mp) { canMoveTo(it) }
+    var tmpPath: MutableList<Direction>? = null
+
+    fun paint(g: Graphics) {
+        if (G.map.selectedCellChanged || true) {
+            val cs = G.map.cs
+            selectedUnit?.let { unit ->
+                G.map.drawPath(g, unit.paintPos, unit.path)
+                val beg = if (G.win.isControlDown) unit.curDist else unit.pos
+                if (G.map.selectedCellChanged) {
+                    val mp = G.map.selectedCellPos
+                    tmpPath = if (G.win.isControlDown) {
+                        G.map.aStar(beg, mp) { unit.canMoveTo(it) }
+                    } else {
+                        G.map.aStar(beg, mp) { unit.canMoveTo(it) }
+                    }
                 }
-                G.map.drawPath(g, beg, path)
+                tmpPath?.let { G.map.drawPath(g, (beg - G.map.cellTranslation) * cs, it) }
+            }
+            selectedEntity?.let {
+                g.color = Color.BLACK
+                g.drawRect(it.paintPos.x + 1, it.paintPos.y + 1, cs - 2, cs - 2)
             }
         }
     }
@@ -126,14 +139,14 @@ class Player(val name: String) {
      * Вызывается при завершении игроком хода
      */
     fun endTurn() {
-        entitys.forEach { it.endTurn() }
+        entities.forEach { it.endTurn() }
     }
 
     /**
      * Вызывается при начале игроком хода
      */
     fun newTurn() {
-        entitys.forEach { it.newTurn() }
+        entities.forEach { it.newTurn() }
     }
 
     /**
@@ -144,7 +157,9 @@ class Player(val name: String) {
         newUnit.owner = this
         G.map[newUnit.pos].unit = newUnit
         units.add(newUnit)
-        updateInvestegatedArea(newUnit.observableArea)
+        //updateInvestigatedArea(newUnit.observableArea)
+        newUnit.updateOwnerInvestigatedArea()
+        updateObservableArea()
     }
 
     /**
@@ -167,7 +182,8 @@ class Player(val name: String) {
         newBuild.owner = this
         G.map[newBuild.pos].build = newBuild
         builds.add((newBuild))
-        updateInvestegatedArea(newBuild.observableArea)
+        newBuild.updateOwnerInvestigatedArea()
+        updateObservableArea()
     }
 
     /**
@@ -183,73 +199,58 @@ class Player(val name: String) {
     }
 
     /**
-     * Праоверяет, может ли персонаж заплптить указанную цену
+     * Проверяет, может ли персонаж заплатить указанную цену
      * @param cost стоимость
      */
-    fun canPay(cost: Map<ResourceType, Int>) = cost.all { resource[it.key]!! >= it.value }
+    fun canPay(cost: Map<ResourceType, Int>) =
+        cost.all { resource[it.key]!! >= it.value }
 
     /**
-     * Праоверяет, может ли персонаж заплптить указанную цену, и если да,
+     * Проверяет, может ли персонаж заплатить указанную цену, и если да,
      * то отнимает соответствующее количество ресурсов
      * @param cost стоимость
      */
     fun pay(cost: Map<ResourceType, Int>): Boolean {
         if (canPay(cost)) {
-            cost.forEach {
-                //val tmp = resource[it.key]?.minus(it.value)!!
-                //resource[it.key] = resource[it.key]?.minus(it.value)!!
-                changeResource(it.key, -it.value)
-            }
+            cost.forEach { changeResource(it.key, -it.value) }
             return true
         }
         return false
     }
 
     /**
-     * Проверяет, принадлежит ли данная сущьность игроку
-     * @param entity сущьность, принадлежность которой проверяется,или является null
+     * Проверяет, принадлежит ли данная сущность игроку
+     * @param entity сущность, принадлежность которой проверяется, или является null
      * @return true, если принадлежит, иначе false
      */
-    fun own(entity: BaseEntity?) = if (entity == null) false else entity.owner == this
+    fun own(entity: BaseEntity?) =
+        if (entity == null) false else entity.owner == this
 
     /**
-     * Содержит информацию о исследованной игроком территории, каждая клетка
+     * Содержит информацию об исследованной игроком территории, каждая клетка
      * может иметь значение либо ObservableStatus.NotInvestigated либо
      * ObservableStatus.Investigated
      */
-    var investegatedArea =
+    var investigatedArea =
         makeMatrix(G.map.size) { ObservableStatus.NotInvestigated }
-
-    /**
-     * Обновляет investegatedArea согласно с расположением юнитов и строений, по идее
-     * такой вариант метода не нужен, так ка квсе сущности автоматически обновляют
-     * investegatedArea
-     */
-    fun updateInvestegatedArea() =
-        entitys.forEach { updateInvestegatedArea(it.observableArea) }
-
-    fun updateInvestegatedArea(area: Matrix<ObservableStatus>) =
-        area.matrixForEachIndexed { pos, status ->
-            if (status == ObservableStatus.Observable) {
-                investegatedArea[pos] = ObservableStatus.Investigated
-            }
-        }
 
     /**
      * Возвращает данные о том, какие клетки видит игрок
      */
-    val observableArea: Matrix<ObservableStatus>
-        get() {
-            var res = investegatedArea.matrixClone()
-            entitys.forEach {
-                it.observableArea.matrixForEachIndexed { pos, status ->
-                    if (status == ObservableStatus.Observable) {
-                        res[pos] = ObservableStatus.Observable
-                    }
-                }
-            }
-            return res
+    val observableArea = makeMatrix(G.map.size) { ObservableStatus.NotInvestigated }
+
+    /**
+     * Обновить наблюдаемую игроком зону
+     */
+    fun updateObservableArea() {
+        investigatedArea.matrixForEachIndexed { pos, cellStatus ->
+            observableArea[pos] = cellStatus
         }
+        entities.forEach { entity ->
+            entity.updateOwnerObservableArea()
+        }
+    }
 
     override operator fun equals(other: Any?) = name == (other as Player).name
+    override fun hashCode() = name.hashCode()
 }
