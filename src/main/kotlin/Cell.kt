@@ -1,8 +1,9 @@
 import java.awt.Color
 
-class Cell(var type: Type = Type.Water) {
+class Cell(val pos: Vector, var type: Type = Type.Water) {
     var unit: BaseUnit? = null
     var build: BaseBuild? = null
+    val pixelBounds get() = Rect(pos * G.map.cs, Vector(G.map.cs, G.map.cs))
 
     enum class Type {
         Water {
@@ -18,7 +19,7 @@ class Cell(var type: Type = Type.Water) {
             override var color: Color = Color(0, 128, 0)
 
         },
-        Hills{
+        Hills {
             override var movePointCost: Int = 3
             override var color: Color = Color(64, 128, 64)
         },
@@ -31,6 +32,7 @@ class Cell(var type: Type = Type.Water) {
         abstract var color: Color
         val size
             get() = values().size
+
         operator fun plus(i: Int): Type {
             val tmp = when {
                 ordinal + i >= size -> size - 1

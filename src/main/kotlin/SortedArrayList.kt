@@ -28,12 +28,16 @@ class SortedArrayList<T>(
 
     fun takeLast(): T {
         val tmp = list.last()
-        list.removeAt(list.size-1)
+        list.removeAt(list.size - 1)
         return tmp
     }
 
     fun contains(element: T) = findIndex(element).let { index ->
-        index >= 0 && element == list[index] || (findEquals(index + 1, element, 1) || findEquals(index - 1, element, -1))
+        index >= 0 && element == list[index] || (findEquals(index + 1, element, 1) || findEquals(
+            index - 1,
+            element,
+            -1
+        ))
     }
 
     fun iterator(): Iterator<T> = list.iterator()

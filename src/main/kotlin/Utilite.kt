@@ -1,3 +1,4 @@
+import java.awt.Graphics
 import java.awt.Polygon
 import java.awt.event.MouseEvent
 import kotlin.math.abs
@@ -56,6 +57,8 @@ val MouseEvent.pos
 fun makePolygon(vararg points: Vector) =
     Polygon(points.map { it.x }.toIntArray(), points.map { it.y }.toIntArray(), points.size)
 
+fun <T> MutableList<T>.copy() = ArrayList<T>(this)
+
 val java.awt.Point.toVector
     get() = Vector(x, y)
 
@@ -94,5 +97,26 @@ fun getCellCircle(p: Vector, r: Int): MutableList<Vector> {
             tmp.map { Vector(it.y, -it.x) + p } +
             rmp.map { Vector(-it.x, it.y) + p }
             ).toMutableList()
+}
 
+fun epsNei(epsilon: Int, pos: Vector = Vector(), iter: (Vector) -> Unit) {
+    for (i in -epsilon..epsilon)
+        for (j in -epsilon + abs(i)..epsilon - abs(i))
+            iter(pos + Vector(i, j))
+}
+
+fun Graphics.drawLine(p1: Vector, p2: Vector) = drawLine(p1.x, p1.y, p2.x, p2.y)
+
+fun Graphics.drawRect(pos: Vector, size: Vector) = drawRect(pos.x, pos.y, size.x, size.y)
+fun Graphics.drawRect(rect: Rect) = drawRect(rect.pos, rect.size)
+fun Graphics.fillRect(pos: Vector, size: Vector) = fillRect(pos.x, pos.y, size.x, size.y)
+fun Graphics.fillRect(rect: Rect) = fillRect(rect.pos, rect.size)
+
+fun Graphics.drawString(str: String, pos: Vector) = drawString(str, pos.x, pos.y)
+fun Graphics.drawMultiString(str: String, pos: Vector) {
+    val p = pos.copy()
+    str.split('\n').forEach {
+        p.y += fontMetrics.height
+        drawString(it, p)
+    }
 }

@@ -10,7 +10,7 @@ import kotlin.random.Random
 
 class GameMap(val width: Int = 20, val height: Int = 20) {
     /**
-     * Размер карты
+     * Размер карты в клетках
      */
     val size
         get() = Vector(width, height)
@@ -18,7 +18,7 @@ class GameMap(val width: Int = 20, val height: Int = 20) {
     /**
      * Клетки карты
      */
-    private var cells = Array(width) { Array(height) { Cell() } }
+    private var cells = makeMatrix(size) { pos -> Cell(pos) }
 
     var cellTranslation = Vector(0, 0)
 
@@ -30,7 +30,7 @@ class GameMap(val width: Int = 20, val height: Int = 20) {
     /**
      * Текстура для рисования тумана войны
      */
-    private val shadow = BufferedImage(cs, cs, TYPE_INT_ARGB).apply {
+    val shadow = BufferedImage(cs, cs, TYPE_INT_ARGB).apply {
         val g = graphics
         g.color = Color(0, 0, 0, 0)
         g.fillRect(0, 0, cs, cs)
@@ -84,8 +84,8 @@ class GameMap(val width: Int = 20, val height: Int = 20) {
             cellTranslation, winSizeInCells
         ) { x, y, cell ->
             if (!fogOfWar || curPlayerObs[x][y] == ObservableStatus.Observable) {
-                cell.unit?.paint(g)
                 cell.build?.paint(g)
+                cell.unit?.paint(g)
             }
         }
         g.color = Color(128, 128, 128, 128)
@@ -173,7 +173,6 @@ class GameMap(val width: Int = 20, val height: Int = 20) {
      * @param path путь, который надо нарисовать
      */
     fun drawPath(g: Graphics, cur_: Vector, path: MutableList<Direction>) {
-        g.color = Color.BLACK
         var cur = cur_
         val lx = IntArray(path.size + 1) { 0 }
         lx[0] = cur.x + cs / 2
@@ -184,15 +183,6 @@ class GameMap(val width: Int = 20, val height: Int = 20) {
             lx[i + 1] += cur.x + cs / 2
             ly[i + 1] += cur.y + cs / 2
         }
-        /*for (d in path) {
-            g.drawLine(
-                cur.x + cs / 2,
-                cur.y + cs / 2,
-                cur.x + d.offset.x * cs + cs / 2,
-                cur.y + d.offset.y * cs + cs / 2
-            )
-            cur += dir.offset * cs
-        }*/
         g.drawPolyline(lx, ly, lx.size)
     }
 
@@ -200,6 +190,19 @@ class GameMap(val width: Int = 20, val height: Int = 20) {
      * Проверяет, находится ли данная позиция внутри карты
      */
     fun inMap(v: Vector) = v.x in 0 until width && v.y in 0 until height
+
+    fun centerOn(pos: Vector) {
+        val p = pos - winSizeInCells / 2
+        if (p.x < 0) p.x = 0
+        if (p.y < 0) p.y = 0
+        if (p.x + winSizeInCells.x > size.x) p.x = p.x + winSizeInCells.x
+        if (p.y + winSizeInCells.y > size.y) p.y = p.y + winSizeInCells.y
+        cellTranslation = p
+    }
+
+    fun centerOn(e: BaseEntity) = centerOn(e.pos)
+
+    operator fun contains(pos: Vector) = inMap(pos)
 
     /**
      * Флаги для алгоритма A*
@@ -243,7 +246,7 @@ class GameMap(val width: Int = 20, val height: Int = 20) {
         }
         fCells[beg].flag = AStarF.Complete
         val visitedCells = SortedArrayList<AStarC>(
-            beg.cellDistance(end) * 3 / 2
+            beg.cellDistance(end) * 5 / 2
         ) { l, r ->
             val tmp = (r.l + r.el) - (l.l + l.el)
             if (tmp == 0) r.pos.comp(l.pos) else tmp

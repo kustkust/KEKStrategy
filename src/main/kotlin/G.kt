@@ -45,21 +45,22 @@ object G {
     }
 
     fun startGame() {
-        map = GameMap(1000, 1000)
+        state = State.Play
+        map = GameMap(100, 100)
         map.generateMapByTwoPoints(Vector(2, 2), 4, Vector(95, 95), 2, 1)
         map.fogOfWar = true
         players = arrayOf(
             Player("1").apply {
                 color = Color.RED
-                addUnit(MeleeUnit(Vector(10, 10)))
-                addBuild(PlayerBaseBuild(Vector(7, 7)))
-                addBuild(Barracks(Vector(8, 7)))
+                addUnit(MeleeUnit(this, Vector(10, 10)))
+                addBuild(PlayerBase(this, Vector(7, 7)))
+                addBuild(Barracks(this, Vector(8, 7)))
             },
             Player("2").apply {
                 color = Color.ORANGE
-                addUnit(MeleeUnit(Vector(10, 11)))
-                addBuild(PlayerBaseBuild(Vector(13, 13)))
-                addBuild(Barracks(Vector(12, 13)))
+                addUnit(MeleeUnit(this, Vector(10, 11)))
+                addBuild(PlayerBase(this, Vector(13, 13)))
+                addBuild(Barracks(this, Vector(12, 13)))
             }
         )
         /*for (x in 3..15) {
@@ -71,36 +72,48 @@ object G {
         curPlayer.newTurn()
     }
 
+    fun checkWin() {
+        if (players.all { it.isLoose || it == curPlayer }) {
+            state = State.Win
+        }
+    }
+
     /**
      * Рисует игру
      */
     fun paint(g: Graphics) {
         when (state) {
             State.Play -> {
-                //val ig = img.graphics
-                g.clearRect(0, 0, map.width * map.cs, map.height * map.cs)
-                map.paint(g)
-                curPlayer.paint(g)
+                paintGame(g)
+            }
+            State.Win -> {
+                paintGame(g)
+                val s = "Player ${curPlayer.name} win!"
+                val w = g.fontMetrics.stringWidth(s)
+                val h = g.fontMetrics.height
                 g.color = curPlayer.color
-                var resStr = ""
-                curPlayer.resource.forEach {
-                    resStr += it.key.name + ":" + it.value.toString() + " "
-                }
-                g.drawString(
-                    "player:${curPlayer.name} $resStr",
-                    0,
-                    g.font.size
-                )
-
-                drawTask.forEach { it(g) }
-                drawTask.clear()
-
-                //g.drawImage(img, 0, 0, null)
+                g.drawString(s, (win.innerSize.x - w) / 2, (win.innerSize.y + h) / 2)
             }
             else -> {
 
             }
         }
+    }
+
+    private fun paintGame(g: Graphics) {
+        g.clearRect(0, 0, map.width * map.cs, map.height * map.cs)
+        map.paint(g)
+        curPlayer.paint(g)
+        g.color = curPlayer.color
+        g.drawString(
+            "player:${curPlayer.name} ${curPlayer.resource.toString_()}",
+            0,
+            g.font.size
+        )
+
+        drawTask.forEach { it(g) }
+        drawTask.clear()
+
     }
 
     /**
@@ -140,19 +153,30 @@ object G {
         when (state) {
             State.Play -> {
                 when (ev.keyCode) {
-                    KeyEvent.VK_SPACE -> {
-                        curPlayer.endTurn()
-                        curPlayerId++
-                        curPlayerId %= players.size
-                        curPlayer.newTurn()
-                    }
+                    KeyEvent.VK_SPACE -> endTurn()
                 }
                 curPlayer.keyClicked(ev)
                 map.keyClicked(ev)
             }
+            State.Win -> {
+                when (ev.keyCode) {
+                    KeyEvent.VK_SPACE -> startGame()
+                }
+            }
             else -> {
 
             }
+        }
+    }
+
+    fun endTurn() {
+        if (!curPlayer.endTurn()) {
+            do {
+                curPlayerId++
+                curPlayerId %= players.size
+            } while (curPlayer.isLoose)
+            map.centerOn(curPlayer.selectedEntity ?: curPlayer.getEntitiesOf<PlayerBase>()[0])
+            curPlayer.newTurn()
         }
     }
 
@@ -162,7 +186,7 @@ object G {
                 map.keyPressed(ev)
             }
             else -> {
-                
+
             }
         }
     }

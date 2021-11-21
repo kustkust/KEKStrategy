@@ -2,19 +2,52 @@ import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 
-abstract class BaseEntity(var pos: Vector = Vector(0, 0)) {
-    lateinit var owner: Player
+/**
+ * Базовый класс для юнитов и построек
+ */
+abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
+    /**
+     * Выбрана ли сущность владельцем
+     */
+    val selected get() = owner.selectedBuild == this
 
-    var maxHp = 10
+    /**
+     * Максимальный запас здоровья сущности
+     */
+    var maxHp = factory.maxHP
+
+    /**
+     * Текущее здоровье сущности
+     */
     var curHp = 10
 
+    /**
+     * Мертва ли сущность
+     */
+    open val isDead get() = curHp <= 0
 
+    /**
+     * Технология, требуемая для открытия данной сущности
+     */
+    val requiredTech get() = factory.requiredTechnology?.let { owner.technologies[it] }
+
+    /**
+     * Открыта ли в дереве технологий данная сущность
+     */
+    val isOpen get() = requiredTech?.isOpen ?: true
+
+    /**
+     * Уникальный идентификатор
+     */
     private val id = idCounter++
 
     companion object {
         private var idCounter = 0
     }
 
+    /**
+     * Положение левого верхнего угла сущности на экране
+     */
     val paintPos: Vector
         get() = (pos - G.map.cellTranslation) * G.map.cs
 
@@ -24,19 +57,27 @@ abstract class BaseEntity(var pos: Vector = Vector(0, 0)) {
     abstract fun paint(g: Graphics)
 
     /**
-     * Вызывается в начале хода владельца
+     * Рисует интерфейс сущности, если она выбрана
      */
-    abstract fun newTurn()
+    open fun paintInterface(g: Graphics) {}
 
     /**
-     * Вызывается в конце хода владельца
+     * Вызывается в начале хода владельца
      */
-    abstract fun endTurn()
+    open fun newTurn() {
+    }
+
+    var isTurnEnded = false
+
+    /**
+     * Вызывается в конце хода владельца, возвращает истину, если сущность что то сделала
+     */
+    open fun endTurn() = false
 
     /**
      * Проверяет себя, например жива ли сущность и если нет, то удаляется
      */
-    abstract fun selfCheck()
+    abstract fun selfCheck(from: BaseEntity? = null)
 
     /**
      * Обработка нажатий клавиш мыши
@@ -54,9 +95,15 @@ abstract class BaseEntity(var pos: Vector = Vector(0, 0)) {
     abstract fun keyClicked(ev: KeyEvent)
 
     /**
+     * Радиус, который видит сущность, расстояние по умолчанию считается как x+y
+     */
+    var observableradius = 2
+
+    /**
      * Последовательно вызывает функцию iter для каждой клетки, которую видит сущность
      */
-    abstract fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit)
+    open fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit) =
+        epsNei(observableradius, pos) { if (it in G.map) iter(it) }
 
     /**
      * Обновляет территорию, которую открыл владелец
@@ -70,9 +117,29 @@ abstract class BaseEntity(var pos: Vector = Vector(0, 0)) {
     open fun updateOwnerObservableArea() =
         iterateInvestigatedArea { owner.observableArea[it] = ObservableStatus.Observable }
 
+    /**
+     * Прокачивает юнита, если это возможно
+     */
+    open fun upgrade() {}
+
+    /**
+     * Клетки на которых может находиться сущность
+     */
     abstract val allowedCells: MutableList<Cell.Type>
+
+    /**
+     * Стоимость сущности
+     */
     abstract val cost: Cost
 
+    /**
+     * Фабрика для данной сущности
+     */
+    abstract val factory: BaseFactory
+
+    /**
+     * Клетка на которой находися сущность
+     */
     val onCell get() = G.map[pos]
 
     override operator fun equals(other: Any?) = id == (other as BaseEntity).id

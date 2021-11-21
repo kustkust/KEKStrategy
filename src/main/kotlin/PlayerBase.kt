@@ -1,15 +1,12 @@
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.VK_1
-import java.awt.event.KeyEvent.VK_9
 import java.awt.event.MouseEvent
-import kotlin.math.abs
-import kotlin.math.min
 
-class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
-    override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Ground)
+class PlayerBase(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, pos) {
+    override var allowedCells = mutableListOf(Cell.Type.Ground)
     override val cost: Cost = mapOf()
+    override val factory get() = Factory
 
     private val maxBuildDistance = 5
 
@@ -17,7 +14,6 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
         g.color = owner.color
         val p = paintPos
         g.fillRect(p.x + 2, p.y + 2, G.map.cs - 4, G.map.cs - 4)
-        //g.fillPolygon(makePolygon(arrayOf(Vector())))
         g.color = Color.BLACK
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
 
@@ -38,24 +34,25 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
         }
     }
 
+    override fun paintInterface(g: Graphics) = buildMenu.paint(g)
+
     private fun canBuildOn(cellPos: Vector) = G.map[cellPos].type in selectedBuild!!.allowedCells &&
             owner.observableArea[cellPos] != ObservableStatus.NotInvestigated &&
             cellPos.cellDistance(pos) <= maxBuildDistance &&
             G.map[cellPos].build == null &&
             (G.map[cellPos].unit == null || owner.own(G.map[cellPos].unit))
 
-    override fun endTurn() {
+    override fun endTurn(): Boolean {
+        super.endTurn()
         owner.resource.keys.forEach {
             owner.changeResource(it, 10)
         }
-        selectedBuild = null
-    }
-
-    override fun newTurn() {
-        //TO DO("Not yet implemented")
+        buildMenu.unselect()
+        return false
     }
 
     override fun mouseClicked(ev: MouseEvent) {
+        buildMenu.mouseClicked(ev)
         if (selectedBuild != null) {
             val p = G.map.selectedCellPos
             when (ev.button) {
@@ -63,10 +60,10 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
                     if (canBuildOn(p) &&
                         owner.pay(selectedBuild!!.cost)
                     ) {
-                        owner.addBuild(selectedBuild!!.createEntity(p) as BaseBuild)
+                        owner.addBuild(selectedBuild!!.createEntity(owner, p) as BaseBuild)
                     }
                 MouseEvent.BUTTON3 ->
-                    selectedBuild = null
+                    buildMenu.unselect()
             }
         }
     }
@@ -77,33 +74,31 @@ class PlayerBaseBuild(pos: Vector = Vector(0, 0)) : BaseBuild(pos) {
 
     override fun keyClicked(ev: KeyEvent) {
         if (owner.selectedBuild == this) {
-            if (ev.keyCode in VK_1..min(VK_9, buildList.size + VK_1 - 1)) {
-                selectedBuild = buildList[ev.keyCode - VK_1]
-            }
+            buildMenu.keyClicked(ev)
         }
     }
 
-    override fun selfCheck() {
-        super.selfCheck()
-        //тут по идее должен быть код для проигрыша игрока в случае разрушения
-        //его базы
-    }
-
-    override fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit) {
-        for (i in -2..2) {
-            for (j in -2 + abs(i)..2 - abs(i)) {
-                val dp = pos + Vector(i, j)
-                if (G.map.inMap(dp)) {
-                    iter(dp)
-                }
-            }
+    override fun selfCheck(from: BaseEntity?) {
+        super.selfCheck(from)
+        if (curHp <= 0) {
+            owner.isLoose = true
+            G.checkWin()
         }
     }
 
-    private var selectedBuild: BaseFactory? = null
+    private val selectedBuild get() = buildMenu.selected
+    private val buildsList = arrayListOf(Barracks.Factory, Mine.Factory)
+    private val buildMenu = CreateMenu(buildsList, owner)
 
-    private val buildList = arrayOf(
-        Mine.Factory,
-        Barracks.Factory
-    )
+    object Factory : BaseFactory {
+        override fun createEntity(owner: Player, pos: Vector): BaseEntity = PlayerBase(owner, pos)
+        override fun paintPreview(g: Graphics) {
+            g.fillRect(2, 2, G.map.cs - 4, G.map.cs - 4)
+        }
+
+        override val cost: Map<ResourceType, Int> = mapOf()
+        override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Ground)
+        override val maxHP: Int = 10
+        override val requiredTechnology: String? = null
+    }
 }

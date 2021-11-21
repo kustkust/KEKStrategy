@@ -1,5 +1,6 @@
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.Toolkit
 import java.awt.event.*
 import javax.swing.JFrame
 import javax.swing.JPanel
@@ -10,25 +11,26 @@ class MainWindow : JFrame() {
             G.paint(g)
         }
     }
+
     var wText = javax.swing.JTextArea("width:")
     var hText = javax.swing.JTextArea("height:")
     var wField = javax.swing.JTextField()
     var hField = javax.swing.JTextField()
 
+    val fm get() =
+        Panel.graphics.fontMetrics
 
-    var isControlDown= false
+    var isControlDown = false
 
     val innerSize
         get() = Vector(Panel.width, Panel.height)
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
-        setLocationRelativeTo(null)
         isVisible = true
         isResizable = true
-        Panel.preferredSize = Dimension(600,600)
+        Panel.preferredSize = Dimension(600, 600)
         add(Panel)
-        //Panel.isVisible = false
 
         pack()
 
@@ -83,6 +85,9 @@ class MainWindow : JFrame() {
             }
 
         })
+
+        val dim = Toolkit.getDefaultToolkit().screenSize
+        setLocation(dim.width / 2 - size.width / 2, dim.height / 2 - size.height / 2)
     }
 
     private var _mPos = Vector(0, 0)

@@ -2,9 +2,10 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON3
 
-abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
+abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
+    BaseEntity(owner, pos) {
     var maxMovePoints = 1000
-    var remMovePoints = 2
+    var remMovePoints = maxMovePoints
     var maxAttackPerTurn = 1
     var attackRem = 1
     var path = mutableListOf<Direction>()
@@ -21,36 +22,37 @@ abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
             remMovePoints -= newCell.type.movePointCost
             pos = newPos
             newCell.unit = this
-            //owner.updateInvestigatedArea(observableArea)
             updateOwnerInvestigatedArea()
             return true
         }
         return false
     }
 
-
-
     override fun mouseMoved(ev: MouseEvent) {
 
     }
 
-    fun finishMove() {
+    fun finishMove(): Boolean {
+        var makeTurn = false
         while (path.isNotEmpty() && move(path.first())) {
+            makeTurn = true
             path.removeAt(0)
         }
         owner.updateObservableArea()
+        return makeTurn
     }
 
-    override fun endTurn() {
-        finishMove()
+    override fun endTurn(): Boolean {
+        return finishMove()
     }
 
     override fun newTurn() {
+        super.newTurn()
         remMovePoints = maxMovePoints
         attackRem = maxAttackPerTurn
     }
 
-    override fun selfCheck() {
+    override fun selfCheck(from: BaseEntity?) {
         if (curHp <= 0) {
             owner.removeUnit(this)
         }
@@ -71,19 +73,16 @@ abstract class BaseUnit(pos: Vector = Vector(0, 0)) : BaseEntity(pos) {
                 val u = G.map[p].unit
                 val b = G.map[p].build
                 if (u != null) {
-                    if(u == this){
+                    if (u == this) {
                         path.clear()
-                    }
-                    else if (canAttack(u)) {
+                    } else if (canAttack(u)) {
                         attack(u)
-                        u.selfCheck()
                     }
                 } else if (b != null) {
                     if (owner.own(b)) {
                         moveControl(ev)
                     } else if (canAttack(b)) {
                         attack(b)
-                        b.selfCheck()
                     }
                 } else {
                     moveControl(ev)

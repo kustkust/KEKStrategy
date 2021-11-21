@@ -1,9 +1,8 @@
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
-import kotlin.math.abs
 
-class Mine(p: Vector) : BaseBuild(p) {
+class Mine(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, pos) {
     override fun paint(g: Graphics) {
         val cs = G.map.cs
         val p = paintPos
@@ -22,11 +21,10 @@ class Mine(p: Vector) : BaseBuild(p) {
         )
     }
 
-    override fun endTurn() {
-        //TO DO("Not yet implemented")
-    }
+    override val factory get() = Factory
 
     override fun newTurn() {
+        super.newTurn()
         owner.changeResource(ResourceType.Stone, 4)
     }
 
@@ -42,24 +40,13 @@ class Mine(p: Vector) : BaseBuild(p) {
         //TO DO("Not yet implemented")
     }
 
-    override fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit) {
-        for (i in -2..2) {
-            for (j in -2 + abs(i)..2 - abs(i)) {
-                val dp = pos + Vector(i, j)
-                if (G.map.inMap(dp)) {
-                    iter(dp)
-                }
-            }
-        }
-    }
-
     override val allowedCells: MutableList<Cell.Type>
         get() = Factory.allowedCells
     override val cost: Cost
         get() = Factory.cost
 
     object Factory : BaseFactory {
-        override fun createEntity(pos: Vector) = Mine(pos)
+        override fun createEntity(owner: Player, pos: Vector) = Mine(owner, pos)
 
         override fun paintPreview(g: Graphics) {
             val cs = G.map.cs
@@ -83,6 +70,7 @@ class Mine(p: Vector) : BaseBuild(p) {
         )
 
         override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Mountain)
-
+        override val maxHP: Int = 10
+        override val requiredTechnology: String = "MineTech"
     }
 }

@@ -1,7 +1,10 @@
+import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_Q
+import java.awt.event.KeyEvent.VK_T
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseEvent.BUTTON3
@@ -11,6 +14,8 @@ class Player(val name: String) {
      * Список юнитов, принадлежащих игроку
      */
     val units = mutableListOf<BaseUnit>()
+
+    var isLoose = false
 
     /**
      * Список зданий, принадлежащих игроку
@@ -28,6 +33,15 @@ class Player(val name: String) {
                 builds[it - units.size]
             }
         }
+
+    var isTechOpen = false
+    val technologies = TechnologyTree(this)
+
+    /**
+     * Возвращает список всех сущностей указанного типа
+     */
+    inline fun <reified T> getEntitiesOf() =
+        entities.filter { b -> b is T }.map { it as T }
 
     /**
      * Ресурсы игрока
@@ -72,6 +86,10 @@ class Player(val name: String) {
         var doSomething = false
         when (ev.button) {
             BUTTON1 -> {
+                if (isTechOpen) {
+                    doSomething = true
+                    technologies.mouseClicked(ev)
+                }
                 val pos = G.map.selectedCellPos
                 val u = G.map[pos].unit
                 val b = G.map[pos].build
@@ -106,6 +124,7 @@ class Player(val name: String) {
     fun keyClicked(ev: KeyEvent) {
         when (ev.keyCode) {
             VK_Q -> selectedEntity = null
+            VK_T -> isTechOpen = !isTechOpen
         }
         selectedEntity?.keyClicked(ev)
     }
@@ -113,40 +132,62 @@ class Player(val name: String) {
     var tmpPath: MutableList<Direction>? = null
 
     fun paint(g: Graphics) {
-        if (G.map.selectedCellChanged || true) {
-            val cs = G.map.cs
-            selectedUnit?.let { unit ->
-                G.map.drawPath(g, unit.paintPos, unit.path)
-                val beg = if (G.win.isControlDown) unit.curDist else unit.pos
-                if (G.map.selectedCellChanged) {
-                    val mp = G.map.selectedCellPos
-                    tmpPath = if (G.win.isControlDown) {
-                        G.map.aStar(beg, mp) { unit.canMoveTo(it) }
-                    } else {
-                        G.map.aStar(beg, mp) { unit.canMoveTo(it) }
-                    }
+        val cs = G.map.cs
+        selectedUnit?.let { unit ->
+            g.color = Color.black
+            val g2 = g as Graphics2D
+            val bs = g2.stroke
+            g2.stroke = BasicStroke(3f)
+            G.map.drawPath(g2, unit.paintPos, unit.path)
+            g2.stroke = bs
+            val beg = if (G.win.isControlDown) unit.curDist else unit.pos
+            if (G.map.selectedCellChanged) {
+                val mp = G.map.selectedCellPos
+                tmpPath = if (G.win.isControlDown) {
+                    G.map.aStar(beg, mp) { unit.canMoveTo(it) }
+                } else {
+                    G.map.aStar(beg, mp) { unit.canMoveTo(it) }
                 }
-                tmpPath?.let { G.map.drawPath(g, (beg - G.map.cellTranslation) * cs, it) }
             }
-            selectedEntity?.let {
-                g.color = Color.BLACK
-                g.drawRect(it.paintPos.x + 1, it.paintPos.y + 1, cs - 2, cs - 2)
+            tmpPath?.let {
+                g.color = Color.white
+                G.map.drawPath(g, (beg - G.map.cellTranslation) * cs, it)
             }
+        }
+        selectedEntity?.let {
+            g.color = Color.BLACK
+            g.drawRect(it.paintPos.x + 1, it.paintPos.y + 1, cs - 2, cs - 2)
+            it.paintInterface(g)
+        }
+        if (isTechOpen) {
+            technologies.paint(g)
         }
     }
 
     /**
      * Вызывается при завершении игроком хода
      */
-    fun endTurn() {
-        entities.forEach { it.endTurn() }
+    fun endTurn(): Boolean {
+        for (e in entities) {
+            if (!e.isTurnEnded) {
+                e.isTurnEnded = true
+                if (e.endTurn()) {
+                    G.map.centerOn(e)
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     /**
      * Вызывается при начале игроком хода
      */
     fun newTurn() {
-        entities.forEach { it.newTurn() }
+        entities.forEach {
+            it.isTurnEnded = false
+            it.newTurn()
+        }
     }
 
     /**
@@ -154,7 +195,6 @@ class Player(val name: String) {
      * @param newUnit юнит, который будет добавлен игроку
      */
     fun addUnit(newUnit: BaseUnit) {
-        newUnit.owner = this
         G.map[newUnit.pos].unit = newUnit
         units.add(newUnit)
         //updateInvestigatedArea(newUnit.observableArea)
@@ -179,7 +219,6 @@ class Player(val name: String) {
      * @param newBuild здание, который будет добавлен игроку
      */
     fun addBuild(newBuild: BaseBuild) {
-        newBuild.owner = this
         G.map[newBuild.pos].build = newBuild
         builds.add((newBuild))
         newBuild.updateOwnerInvestigatedArea()
@@ -223,7 +262,7 @@ class Player(val name: String) {
      * @param entity сущность, принадлежность которой проверяется, или является null
      * @return true, если принадлежит, иначе false
      */
-    fun own(entity: BaseEntity?) =
+    infix fun own(entity: BaseEntity?) =
         if (entity == null) false else entity.owner == this
 
     /**
