@@ -1,94 +1,77 @@
 import java.awt.Dimension
+import java.awt.FontMetrics
 import java.awt.Graphics
 import java.awt.Toolkit
-import java.awt.event.*
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.JFrame
-import javax.swing.JLayeredPane
 import javax.swing.JPanel
 
 class MainWindow : JFrame() {
 
-    val MainPanel = JPanel()
-    val Panel = GamePanel()
-    val Layers = JLayeredPane()
-    var wText = javax.swing.JTextArea("width:")
-    var hText = javax.swing.JTextArea("height:")
-    var wField = javax.swing.JTextField()
-    var hField = javax.swing.JTextField()
+    val mainPanel = JPanel()
 
-    val fm get() =
-        Panel.graphics.fontMetrics
+    val menu = GameMenu(600, 600)
+    val gamePanel = GamePanel()
+
+    val fm: FontMetrics
+        get() =
+            gamePanel.graphics.fontMetrics
 
     var isControlDown = false
 
     val innerSize
-        get() = Vector(Panel.width, Panel.height)
+        get() = Vector(gamePanel.width, gamePanel.height)
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
         isVisible = true
         isResizable = true
-        Panel.preferredSize = Dimension(600, 600)
-        MainPanel.preferredSize = Dimension(600, 600)
-        add(MainPanel)
-        MainPanel.add(Panel)
+
+        mainPanel.preferredSize = Dimension(600, 600)
+        add(mainPanel)
+
+        gamePanel.preferredSize = Dimension(600, 600)
+        gamePanel.isVisible = false
+        mainPanel.add(gamePanel)
+
+        mainPanel.add(menu.menuPanel)
+        mainPanel.add(menu.mapChoosePanel)
+        mainPanel.add(menu.pausePanel)
         pack()
 
-        addKeyListener(object : KeyListener {
-            override fun keyTyped(e: KeyEvent?) {
-                //TO DO("Not yet implemented")
-            }
-
+        addKeyListener(object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent) {
                 isControlDown = e.isControlDown
                 G.keyPressed(e)
-                Panel.repaint()
-                MainPanel.repaint()
+                gamePanel.repaint()
+                mainPanel.repaint()
             }
 
             override fun keyReleased(e: KeyEvent) {
                 isControlDown = e.isControlDown
                 G.keyClicked(e)
-                Panel.repaint()
-                MainPanel.repaint()
+                gamePanel.repaint()
+                mainPanel.repaint()
             }
         })
-        MainPanel.addMouseListener(object : MouseListener {
+        val mouseAdapter = object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 G.mouseClicked(e)
-                Panel.repaint()
-                MainPanel.repaint()
-            }
-
-            override fun mousePressed(e: MouseEvent?) {
-                //TO DO("Not yet implemented")
-            }
-
-            override fun mouseReleased(e: MouseEvent?) {
-                //TO DO("Not yet implemented")
-            }
-
-            override fun mouseEntered(e: MouseEvent?) {
-                //TO DO("Not yet implemented")
-            }
-
-            override fun mouseExited(e: MouseEvent?) {
-                //TO DO("Not yet implemented")
-            }
-
-        })
-        MainPanel.addMouseMotionListener(object : MouseMotionListener {
-            override fun mouseDragged(e: MouseEvent?) {
-                //TO DO("Not yet implemented")
+                gamePanel.repaint()
+                mainPanel.repaint()
             }
 
             override fun mouseMoved(e: MouseEvent) {
                 G.mouseMoved(e)
-                Panel.repaint()
-                MainPanel.repaint()
+                gamePanel.repaint()
+                mainPanel.repaint()
             }
-
-        })
+        }
+        mainPanel.addMouseListener(mouseAdapter)
+        mainPanel.addMouseMotionListener(mouseAdapter)
 
         val dim = Toolkit.getDefaultToolkit().screenSize
         setLocation(dim.width / 2 - size.width / 2, dim.height / 2 - size.height / 2)
@@ -98,15 +81,16 @@ class MainWindow : JFrame() {
 
     val mPos: Vector
         get() {
-            val tmp = Panel.mousePosition
+            val tmp = gamePanel.mousePosition
             if (tmp != null) {
                 _mPos = tmp.toVector
             }
             return _mPos
         }
-}
-class GamePanel : JPanel() {
-    override fun paint(g: Graphics) {
-        G.paint(g)
+
+    class GamePanel : JPanel() {
+        override fun paint(g: Graphics) {
+            G.paint(g)
+        }
     }
 }

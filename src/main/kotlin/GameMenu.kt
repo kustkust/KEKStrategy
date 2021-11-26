@@ -1,135 +1,141 @@
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
-import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.text.StyleConstants
-import javax.swing.text.StyleConstants.setBackground
 
 
-class GameMenu {
+class GameMenu(winWidth: Int, winHeight: Int) {
     //во имя главного меню
-    val MenuPanel = ImagePanel("/KEKStrategyGit/src/GraphicsRes/MenuPic.jpg")
-    val MenuLabel = JLabel("KEKStrategy")
-    var _1vs1Button = JButton("Player vs Player")
-    var _1vsPCButton = JButton("Player vs PC")
-    var actLis = MenuButtonActionListener()
+    val menuPanel = ImagePanel("/KEKStrategyGit/src/GraphicsRes/MenuPic.jpg")
+    private val menuLabel = JLabel("KEKStrategy")
+    private var pVsPButton = JButton("Player vs Player")
+    private var pVsEButton = JButton("Player vs PC")
 
     //во имя окна выбора карты
-    val MapChoosePanel = ImagePanel("/KEKStrategyGit/src/GraphicsRes/MenuPic.jpg")
-    val MapChooseLabel = JLabel("Choose your map")
-    val MapChooseButtons = listOf(JButton(),JButton(),JButton(),JButton(), JButton())
-
+    val mapChoosePanel = ImagePanel("/KEKStrategyGit/src/GraphicsRes/MenuPic.jpg")
+    private val mapChooseLabel = JLabel("Choose your map")
+    private val mapChooseButtons = listOf(JButton(), JButton(), JButton(), JButton(), JButton())
 
     //во имя меню паузы
-    val PausePanel = JPanel()
-    val PauseLabel = JLabel("Pause")
-    var ToMainMenuButton = JButton("Main Menu")
-    var ContinueButton = JButton("Continue")
+    val pausePanel = JPanel()
+    private val pauseLabel = JLabel("Pause")
+    private var toMainMenuButton = JButton("Main Menu")
+    private var continueButton = JButton("Continue")
 
-    fun FirstPaint(winWidth: Int, winHeight: Int){
+    init {
+        pack(winWidth, winHeight)
+    }
+
+    //В девичестве FirstPaint
+    private fun pack(winWidth: Int, winHeight: Int) {
         //Сборка панели главного меню
-        MenuPanel.setLayout(null)
-        MenuPanel.preferredSize = Dimension(winWidth,winHeight)
-        MenuPanel.setOpaque(true)
+        menuPanel.layout = null
+        menuPanel.preferredSize = Dimension(winWidth, winHeight)
+        menuPanel.isOpaque = true
 
-        MenuLabel.setBounds(winWidth/3, winHeight/3 - 100, winWidth/2, winHeight/10)
-        MenuLabel.setFont(Font(MenuLabel.getFont().getName(), Font.ITALIC, 40))
+        menuLabel.setBounds(winWidth / 3, winHeight / 3 - 100, winWidth / 2, winHeight / 10)
+        menuLabel.font = Font(menuLabel.font.name, Font.ITALIC, 40)
 
-        _1vs1Button.setBounds(winWidth/3, winHeight/3, winWidth/3, winHeight/10)
-        _1vsPCButton.setBounds(winWidth/3, winHeight/3 + 100, winWidth/3, winHeight/10)
-        _1vs1Button.setActionCommand("pvp")
-        _1vsPCButton.setActionCommand("pve")
-        _1vs1Button.addActionListener(actLis)
-        _1vsPCButton.addActionListener(actLis)
+        pVsPButton.setBounds(winWidth / 3, winHeight / 3, winWidth / 3, winHeight / 10)
+        pVsEButton.setBounds(winWidth / 3, winHeight / 3 + 100, winWidth / 3, winHeight / 10)
+        pVsPButton.actionCommand = "pvp"
+        pVsEButton.actionCommand = "pve"
+        pVsPButton.isFocusable = false
+        pVsEButton.isFocusable = false
 
-        MenuPanel.add(MenuLabel)
-        MenuPanel.add(_1vs1Button)
-        MenuPanel.add(_1vsPCButton)
+        val actLis = ActionListener { e ->
+            when (e.actionCommand) {
+                "pvp" -> {
+                    menuPanel.isVisible = false
+                    mapChoosePanel.isVisible = true
+                }
+                "pve" -> {
+
+                }
+                "continue" -> {
+                    pausePanel.isVisible = false
+                    G.win.gamePanel.isVisible = true
+                }
+                "ExitToMainMenu" -> {
+                    G.state = G.State.Menu
+                    standardVisible()
+                }
+                else -> {
+                    G.state = G.State.Play
+                    //G.mapNum = e.getActionCommand().toInt() Отправка номера выбранной карты
+                    mapChoosePanel.isVisible = false
+                    G.win.gamePanel.isVisible = true
+                }
+            }
+        }
+
+        pVsPButton.addActionListener(actLis)
+        pVsEButton.addActionListener(actLis)
+
+        menuPanel.add(menuLabel)
+        menuPanel.add(pVsPButton)
+        menuPanel.add(pVsEButton)
 
         //Сборка панели выбора карты
+        mapChoosePanel.layout = null
+        mapChoosePanel.preferredSize = Dimension(winWidth, winHeight)
+        mapChoosePanel.isOpaque = true
 
-        MapChoosePanel.setLayout(null)
-        MapChoosePanel.preferredSize = Dimension(winWidth,winHeight)
-        MapChoosePanel.setOpaque(true)
+        mapChooseLabel.setBounds(winWidth / 3, winHeight / 3 - 100, winWidth / 2, winHeight / 10)
+        mapChooseLabel.font = Font(menuLabel.font.name, Font.ITALIC, 30)
 
-        MapChooseLabel.setBounds(winWidth/3, winHeight/3 - 100, winWidth/2, winHeight/10)
-        MapChooseLabel.setFont(Font(MenuLabel.getFont().getName(), Font.ITALIC, 30))
+        for ((index, mapButton) in mapChooseButtons.withIndex()) {
+            mapButton.setBounds(winWidth / 10 + 100 * index, winHeight / 3, winWidth / 10, winHeight / 10)
+            mapButton.addActionListener(actLis)
+            mapButton.isFocusable = false
+            mapButton.actionCommand = index.toString()
 
-        for ((index,MapButton) in MapChooseButtons.withIndex()) {
-            MapButton.setBounds(winWidth/10 + 100*index, winHeight/3, winWidth/10, winHeight/10)
-            MapButton.addActionListener(actLis)
-            MapButton.setActionCommand(index.toString())
-
-            MapChoosePanel.add(MapButton)
+            mapChoosePanel.add(mapButton)
         }
 
-        MapChoosePanel.add(MapChooseLabel)
+        mapChoosePanel.add(mapChooseLabel)
 
         //Сборка панели меню паузы
-        PausePanel.setLayout(null)
-        PausePanel.preferredSize = Dimension(winWidth,winHeight)
-        PausePanel.setOpaque(true)
-        PausePanel.setBackground(Color(255, 255, 255, 30))
+        pausePanel.layout = null
+        pausePanel.preferredSize = Dimension(winWidth, winHeight)
+        pausePanel.isOpaque = true
+        pausePanel.background = Color(255, 255, 255, 30)
 
-        PauseLabel.setBounds(winWidth/3, winHeight/3 - 100, winWidth/2, winHeight/10)
-        PauseLabel.setFont(Font(MenuLabel.getFont().getName(), Font.ITALIC, 30))
-        PauseLabel.setForeground(Color.blue)
+        pauseLabel.setBounds(winWidth / 3, winHeight / 3 - 100, winWidth / 2, winHeight / 10)
+        pauseLabel.font = Font(menuLabel.font.name, Font.ITALIC, 30)
+        pauseLabel.foreground = Color.blue
 
-        ToMainMenuButton.setBounds(winWidth/3, winHeight/3, winWidth/3, winHeight/10)
-        ContinueButton.setBounds(winWidth/3, winHeight/3 + 100, winWidth/3, winHeight/10)
-        ToMainMenuButton.setActionCommand("continue")
-        ContinueButton.setActionCommand("ExitToMainMenu")
-        ToMainMenuButton.addActionListener(actLis)
-        ContinueButton.addActionListener(actLis)
+        toMainMenuButton.setBounds(winWidth / 3, winHeight / 3, winWidth / 3, winHeight / 10)
+        continueButton.setBounds(winWidth / 3, winHeight / 3 + 100, winWidth / 3, winHeight / 10)
+        toMainMenuButton.actionCommand = "ExitToMainMenu"
+        continueButton.actionCommand = "continue"
+        toMainMenuButton.addActionListener(actLis)
+        continueButton.addActionListener(actLis)
+        toMainMenuButton.isFocusable = false
+        continueButton.isFocusable = false
 
-        PausePanel.add(PauseLabel)
-        PausePanel.add(ToMainMenuButton)
-        PausePanel.add(ContinueButton)
+        pausePanel.add(pauseLabel)
+        pausePanel.add(toMainMenuButton)
+        pausePanel.add(continueButton)
 
-        StandartVisible()
+        standardVisible()
     }
-    fun StandartVisible(){
-        G.menu.MenuPanel.setVisible(true)
-        G.menu.MapChoosePanel.setVisible(false)
-        G.menu.PausePanel.setVisible(false)
+
+    private fun standardVisible() {
+        menuPanel.isVisible = true
+        mapChoosePanel.isVisible = false
+        pausePanel.isVisible = false
     }
-    fun keyCliked(ev: KeyEvent) {
+
+    fun keyClicked(ev: KeyEvent) {
         when (ev.keyCode) {
             KeyEvent.VK_ESCAPE -> {
-                    G.menu.PausePanel.setVisible(true)
-                    println("kek")
-                    println(G.menu.PausePanel.isVisible)
-            }
-        }
-    }
-}
-class MenuButtonActionListener : ActionListener {
-    override fun actionPerformed(e: ActionEvent) {
-        when(e.getActionCommand()){
-            "pvp" -> {
-                G.menu.MenuPanel.setVisible(false)
-                G.menu.MapChoosePanel.setVisible(true)
-            }
-            "pve" ->{
-
-            }
-            "continue" ->{
-                G.menu.PausePanel.setVisible(false)
-            }
-            "ExitToMainMenu" ->{
-                G.state = G.State.Menu
-                G.menu.StandartVisible()
-            }
-            else -> {
-                G.state = G.State.Play
-                //G.mapNum = e.getActionCommand().toInt() Отправка номера выбаной карты
-                G.menu.MapChoosePanel.setVisible(false)
-                G.win.Panel.setVisible(true)
+                pausePanel.isVisible = true
+                G.win.gamePanel.isVisible = false
             }
         }
     }

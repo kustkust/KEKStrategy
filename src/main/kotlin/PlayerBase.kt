@@ -53,14 +53,14 @@ class PlayerBase(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, p
 
     override fun mouseClicked(ev: MouseEvent) {
         buildMenu.mouseClicked(ev)
-        if (selectedBuild != null) {
+        selectedBuild?.let { selectedBuild ->
             val p = G.map.selectedCellPos
             when (ev.button) {
                 MouseEvent.BUTTON1 ->
                     if (canBuildOn(p) &&
-                        owner.pay(selectedBuild!!.cost)
+                        owner.pay(selectedBuild.cost)
                     ) {
-                        owner.addBuild(selectedBuild!!.createEntity(owner, p) as BaseBuild)
+                        owner.addBuild(selectedBuild.createEntity(owner, p) as BaseBuild)
                     }
                 MouseEvent.BUTTON3 ->
                     buildMenu.unselect()

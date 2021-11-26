@@ -99,19 +99,19 @@ class TechnologyTree(val owner: Player) {
             "MineTech",
             mutableMapOf(ResourceType.Gold to 20),
             false,
-            listOf(technologies["BaseTech"]!!)
+            listOf(technologies.getValue("BaseTech"))
         )
         addTech(
             "SawWill",
             mutableMapOf(ResourceType.Gold to 20),
             false,
-            listOf(technologies["BaseTech"]!!)
+            listOf(technologies.getValue("BaseTech"))
         )
         addTech(
             "MeleeUnit",
             mutableMapOf(ResourceType.Gold to 20),
             false,
-            listOf(technologies["MineTech"]!!)
+            listOf(technologies.getValue("MineTech"))
         )
         place()
     }
