@@ -33,7 +33,7 @@ class GameMenu {
 
     fun FirstPaint(winWidth: Int, winHeight: Int){
         //Сборка панели главного меню
-        MenuPanel.setLayout(null);
+        MenuPanel.setLayout(null)
         MenuPanel.preferredSize = Dimension(winWidth,winHeight)
         MenuPanel.setOpaque(true)
 
@@ -53,7 +53,7 @@ class GameMenu {
 
         //Сборка панели выбора карты
 
-        MapChoosePanel.setLayout(null);
+        MapChoosePanel.setLayout(null)
         MapChoosePanel.preferredSize = Dimension(winWidth,winHeight)
         MapChoosePanel.setOpaque(true)
 
@@ -71,7 +71,7 @@ class GameMenu {
         MapChoosePanel.add(MapChooseLabel)
 
         //Сборка панели меню паузы
-        PausePanel.setLayout(null);
+        PausePanel.setLayout(null)
         PausePanel.preferredSize = Dimension(winWidth,winHeight)
         PausePanel.setOpaque(true)
         PausePanel.setBackground(Color(255, 255, 255, 30))
