@@ -3,15 +3,14 @@ import java.awt.Graphics
 import java.awt.Toolkit
 import java.awt.event.*
 import javax.swing.JFrame
+import javax.swing.JLayeredPane
 import javax.swing.JPanel
 
 class MainWindow : JFrame() {
-    object Panel : JPanel() {
-        override fun paint(g: Graphics) {
-            G.paint(g)
-        }
-    }
 
+    val MainPanel = JPanel()
+    val Panel = GamePanel()
+    val Layers = JLayeredPane()
     var wText = javax.swing.JTextArea("width:")
     var hText = javax.swing.JTextArea("height:")
     var wField = javax.swing.JTextField()
@@ -30,8 +29,9 @@ class MainWindow : JFrame() {
         isVisible = true
         isResizable = true
         Panel.preferredSize = Dimension(600, 600)
-        add(Panel)
-
+        MainPanel.preferredSize = Dimension(600, 600)
+        add(MainPanel)
+        MainPanel.add(Panel)
         pack()
 
         addKeyListener(object : KeyListener {
@@ -43,18 +43,21 @@ class MainWindow : JFrame() {
                 isControlDown = e.isControlDown
                 G.keyPressed(e)
                 Panel.repaint()
+                MainPanel.repaint()
             }
 
             override fun keyReleased(e: KeyEvent) {
                 isControlDown = e.isControlDown
                 G.keyClicked(e)
                 Panel.repaint()
+                MainPanel.repaint()
             }
         })
-        Panel.addMouseListener(object : MouseListener {
+        MainPanel.addMouseListener(object : MouseListener {
             override fun mouseClicked(e: MouseEvent) {
                 G.mouseClicked(e)
                 Panel.repaint()
+                MainPanel.repaint()
             }
 
             override fun mousePressed(e: MouseEvent?) {
@@ -74,7 +77,7 @@ class MainWindow : JFrame() {
             }
 
         })
-        Panel.addMouseMotionListener(object : MouseMotionListener {
+        MainPanel.addMouseMotionListener(object : MouseMotionListener {
             override fun mouseDragged(e: MouseEvent?) {
                 //TO DO("Not yet implemented")
             }
@@ -82,6 +85,7 @@ class MainWindow : JFrame() {
             override fun mouseMoved(e: MouseEvent) {
                 G.mouseMoved(e)
                 Panel.repaint()
+                MainPanel.repaint()
             }
 
         })
@@ -100,4 +104,9 @@ class MainWindow : JFrame() {
             }
             return _mPos
         }
+}
+class GamePanel : JPanel() {
+    override fun paint(g: Graphics) {
+        G.paint(g)
+    }
 }

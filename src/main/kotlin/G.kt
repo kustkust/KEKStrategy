@@ -2,8 +2,10 @@ import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import javax.swing.JLayeredPane
 
 object G {
+    lateinit var menu: GameMenu
     /**
      * Игровая карта
      */
@@ -15,7 +17,7 @@ object G {
         Win,
     }
 
-    var state = State.Play
+    var state = State.Menu
 
     /**
      * Список игроков
@@ -45,7 +47,10 @@ object G {
     }
 
     fun startGame() {
-        state = State.Play
+        state = State.Menu
+        menu = GameMenu()
+        menu.FirstPaint(600,600)
+
         map = GameMap(100, 100)
         map.generateMapByTwoPoints(Vector(2, 2), 4, Vector(95, 95), 2, 1)
         map.fogOfWar = true
@@ -72,16 +77,16 @@ object G {
         curPlayer.newTurn()
     }
 
+    /**
+     * Рисует игру
+     */
     fun checkWin() {
         if (players.all { it.isLoose || it == curPlayer }) {
             state = State.Win
         }
     }
-
-    /**
-     * Рисует игру
-     */
     fun paint(g: Graphics) {
+
         when (state) {
             State.Play -> {
                 paintGame(g)
@@ -95,11 +100,10 @@ object G {
                 g.drawString(s, (win.innerSize.x - w) / 2, (win.innerSize.y + h) / 2)
             }
             else -> {
-
+                win.Panel.setVisible(false)
             }
         }
     }
-
     private fun paintGame(g: Graphics) {
         g.clearRect(0, 0, map.width * map.cs, map.height * map.cs)
         map.paint(g)
@@ -157,6 +161,7 @@ object G {
                 }
                 curPlayer.keyClicked(ev)
                 map.keyClicked(ev)
+                //menu.keyCliked(ev)
             }
             State.Win -> {
                 when (ev.keyCode) {
@@ -168,7 +173,6 @@ object G {
             }
         }
     }
-
     fun endTurn() {
         if (!curPlayer.endTurn()) {
             do {
@@ -179,14 +183,14 @@ object G {
             curPlayer.newTurn()
         }
     }
-
     fun keyPressed(ev: KeyEvent) {
         when (state) {
             State.Play -> {
                 map.keyPressed(ev)
+
             }
             else -> {
-
+                
             }
         }
     }
@@ -202,5 +206,8 @@ object G {
     @JvmStatic
     fun main(a: Array<String>) {
         win = MainWindow()
+        win.MainPanel.add(menu.MenuPanel)
+        win.MainPanel.add(menu.MapChoosePanel)
+        //win.MainPanel.add(menu.PausePanel)
     }
 }
