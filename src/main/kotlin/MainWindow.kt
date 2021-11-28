@@ -11,9 +11,12 @@ import javax.swing.JPanel
 
 class MainWindow : JFrame() {
 
+    var GameWidth = 800
+    var GameHeight = 600
+
     val mainPanel = JPanel()
 
-    val menu = GameMenu(600, 600)
+    val menu = GameMenu(GameWidth, GameHeight)
     val gamePanel = GamePanel()
 
     val fm: FontMetrics
@@ -30,16 +33,17 @@ class MainWindow : JFrame() {
         isVisible = true
         isResizable = true
 
-        mainPanel.preferredSize = Dimension(600, 600)
+        mainPanel.preferredSize = Dimension(GameWidth, GameHeight)
         add(mainPanel)
 
-        gamePanel.preferredSize = Dimension(600, 600)
+        gamePanel.preferredSize = Dimension(GameWidth, GameHeight)
         gamePanel.isVisible = false
         mainPanel.add(gamePanel)
 
         mainPanel.add(menu.menuPanel)
         mainPanel.add(menu.mapChoosePanel)
         mainPanel.add(menu.pausePanel)
+        glassPane = menu.pausePanel
         pack()
 
         addKeyListener(object : KeyAdapter() {

@@ -46,6 +46,7 @@ object G {
 
     fun startGame() {
         state = State.Menu
+        curPlayerId = 0
 
         map = GameMap(100, 100)
         map.generateMapByTwoPoints(Vector(2, 2), 4, Vector(95, 95), 2, 1)
