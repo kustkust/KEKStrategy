@@ -7,7 +7,7 @@ import javax.swing.border.Border
 
 class GameMenu(winWidth: Int, winHeight: Int) {
     //во имя главного меню
-    val menuPanel = ImagePanel("F:/KEKStrategyGit/src/main/kotlin/resource/graphics/KekStratMenuPic.png")
+    val menuPanel = ImagePanel("./src/main/kotlin/resource/graphics/KekStratMenuPic.png")
     //private val menuLabel = JLabel("KEKStrategy")
 
     //#660800 dark red
@@ -19,7 +19,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
     private var ExitButton = GameButton("<html><h2>Exit", true)
 
     //во имя окна выбора карты
-    val mapChoosePanel = ImagePanel("F:/KEKStrategyGit/src/main/kotlin/resource/graphics/KekStratMapChoosePic.png")
+    val mapChoosePanel = ImagePanel("./src/main/kotlin/resource/graphics/KekStratMapChoosePic.png")
    // private val mapChooseLabel = JLabel("Choose your map")
     private val mapChooseButtons = listOf(GameButton(null, true), GameButton(null, true), GameButton(null, true), GameButton(null, true), GameButton(null, true))
 
@@ -74,6 +74,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
                 }
                 //Кнопачки меню паузы
                 "continue" -> {
+                    G.state = G.State.Play
                     pausePanel.isVisible = false
                 }
                 "ExitToMainMenu" -> {
@@ -157,6 +158,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         when (ev.keyCode) {
             KeyEvent.VK_ESCAPE -> {
                 pausePanel.isVisible = true
+                G.state = G.State.Menu
             }
         }
     }

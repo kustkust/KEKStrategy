@@ -25,7 +25,7 @@ class GameMap(val width: Int = 20, val height: Int = 20) {
     /**
      * Размер одной клетки в пикселях
      */
-    val cs = 30
+    val cs = 32
 
     /**
      * Текстура для рисования тумана войны

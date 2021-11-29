@@ -1,6 +1,11 @@
 import java.awt.Color
 import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.image.BufferedImage
+import java.io.File
+import javax.imageio.ImageIO
 import kotlin.math.absoluteValue
+
 
 class MeleeUnit(owner: Player, pos: Vector = Vector()) : BaseUnit(owner, pos) {
     override val allowedCells: MutableList<Cell.Type>
@@ -44,15 +49,24 @@ class MeleeUnit(owner: Player, pos: Vector = Vector()) : BaseUnit(owner, pos) {
             cell.unit == null &&
             (cell.build == null || owner own cell.build)
 
+    val p1texture = ImageIO.read(File("src/main/kotlin/resource/graphics/TestUnitSprite.png"))
+    val p2texture = ImageIO.read(File("src/main/kotlin/resource/graphics/TestUnitSpritep2.png"))
+
     override fun paint(g: Graphics) {
+
         val cs = G.map.cs
         g.color = owner.color
         val p = paintPos
-        g.fillPolygon(
+        /*g.fillPolygon(
             intArrayOf(p.x + cs / 2, p.x + 2, p.x + cs - 2),
             intArrayOf(p.y + 2, p.y + cs - 2, p.y + cs - 2),
             3
-        )
+        )*/
+        if (owner.name == "1") {
+            g.drawImage(p1texture, p.x, p.y, null)
+        }else{
+            g.drawImage(p2texture, p.x, p.y, null)
+        }
         g.color = Color.BLACK
         g.drawString(curHp.toString(), p.x + 1, p.y + g.font.size)
         g.drawString(remMovePoints.toString(), p.x + 1, p.y + cs - 1)
