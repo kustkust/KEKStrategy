@@ -20,10 +20,10 @@ class GameMenu(winWidth: Int, winHeight: Int) {
     //#9a0c00 red
     //#9e9e9e gray
     //#5f5d5d dark gray
-    private var pVsPButton = GameButton("<html><h2>Player vs Player")
-    private var pVsEButton = GameButton("<html><h2>Player vs PC")
-    private var editMapButton = GameButton("<html><h2>Edit Map")
-    private var exitButton = GameButton("<html><h2>Exit")
+    private var pVsPButton = GameButton("Player vs Player")
+    private var pVsEButton = GameButton("Player vs PC")
+    private var editMapButton = GameButton("Edit Map")
+    private var exitButton = GameButton("Exit")
 
     //во имя окна выбора карты
     val mapChoosePanel = ImagePanel("./src/main/resources/graphics/menuImages/KekStratMapChoosePic.png")
@@ -36,12 +36,19 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         GameButton(null, true),
         GameButton(null, true)
     )
+    var MapDescriptions = listOf(
+        "Description here", //1 map
+        "Description here", //2 map
+        "Description here", //3 map
+        "Description here", //4 map
+        "Description here"  //5 map
+    )
 
     //во имя меню паузы
     val pausePanel = JPanel()
     private val pauseLabel = JLabel("<html><font color=\"#9a0c00 \">Pause")
-    private var toMainMenuButton = GameButton("<html><h2>Main Menu", false)
-    private var continueButton = GameButton("<html><h2>Continue", false)
+    private var toMainMenuButton = GameButton("Main Menu", false)
+    private var continueButton = GameButton("Continue", false)
 
     init {
         pack(winWidth, winHeight)
@@ -57,10 +64,10 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         // menuLabel.setBounds(winWidth / 3, winHeight / 3 - 100, winWidth / 2, winHeight / 10)
         // menuLabel.font = Font(menuLabel.font.name, Font.ITALIC, 40)
 
-        pVsPButton.setBounds(winWidth / 13, winHeight / 2, winWidth / 3, winHeight / 10)
-        pVsEButton.setBounds(winWidth / 13, winHeight / 2 + winHeight / 8, winWidth / 3, winHeight / 10)
-        editMapButton.setBounds(winWidth / 13, winHeight / 2 + 2 * winHeight / 8, winWidth / 3, winHeight / 10)
-        exitButton.setBounds(winWidth / 13, winHeight / 2 + 3 * winHeight / 8, winWidth / 3, winHeight / 10)
+        pVsPButton.setBounds(winWidth / 13, winHeight / 3 + 50, winWidth / 3, winHeight / 10)
+        pVsEButton.setBounds(winWidth / 13, winHeight / 3 + winHeight / 8 + 50, winWidth / 3, winHeight / 10)
+        editMapButton.setBounds(winWidth / 13, winHeight / 3 + 2 * winHeight / 8 + 50, winWidth / 3, winHeight / 10)
+        exitButton.setBounds(winWidth / 13, winHeight / 3 + 3 * winHeight / 8 + 50, winWidth / 3, winHeight / 10)
 
         editMapButton.addMouseListener(object: MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
@@ -126,18 +133,42 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         mapChoosePanel.preferredSize = Dimension(winWidth, winHeight)
         mapChoosePanel.isOpaque = true
 
-        /*for ((index, mapButton) in mapChooseButtons.withIndex()) {
+        val mapText = GameLabel()
+
+        mapText.setBounds(winWidth / 50 + winWidth / 6, winHeight / 2 + winHeight / 5 - 10, winWidth / 2 + winWidth / 8, winHeight/2 - 130)
+        mapText.isVisible = false
+        mapChoosePanel.add(mapText)
+
+
+        for ((index, mapButton) in mapChooseButtons.withIndex()) {
             mapButton.setBounds(winWidth / 50 + winWidth / 5 * index, winHeight / 2, winWidth / 6, winHeight / 6)
             mapButton.addActionListener(actLis)
-            mapButton.isFocusable = false
+
+
+
+            mapButton.addMouseListener(object: MouseAdapter() {
+                override fun mouseEntered(e: MouseEvent?) {
+                    mapText.isVisible = true
+                    mapText.text = MapDescriptions[index]
+                    super.mouseEntered(e)
+                }
+                override fun mouseExited(e: MouseEvent?) {
+                    mapText.isVisible = false
+                    super.mouseEntered(e)
+                }
+            })
+
             mapButton.actionCommand = index.toString()
 
             mapChoosePanel.add(mapButton)
-        }*/
-        val mapName = JLabel()
+        }
+
+
+       /* val mapName = JLabel()
         val mapText = JTextPane()
         val startButton = GameButton("<html><font color=\"#9a0c00 \">Start Game")
-        val mapList = JList<String>()
+        val mapList = JList<String>()*/
+/*
 
         mapName.setBounds(winWidth / 2 + 30, winHeight / 2, winWidth / 2 - 30, 30)
         mapChoosePanel.add(mapName)
@@ -171,6 +202,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         }
         mapList.model = maps
         mapChoosePanel.add(mapList)
+*/
 
         //Сборка панели меню паузы
         pausePanel.layout = null
@@ -188,8 +220,6 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         continueButton.actionCommand = "continue"
         toMainMenuButton.addActionListener(actLis)
         continueButton.addActionListener(actLis)
-        toMainMenuButton.isFocusable = false
-        continueButton.isFocusable = false
 
 
         pausePanel.add(pauseLabel)
@@ -213,3 +243,4 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         }
     }
 }
+
