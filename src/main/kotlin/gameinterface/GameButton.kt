@@ -5,7 +5,7 @@ import java.awt.Font
 import java.awt.Graphics
 import javax.swing.JButton
 
-internal class GameButton(text: String?, val isRounded: Boolean = true, var r: Int = 50) : JButton(text) {
+internal class GameButton(text: String? = null, val isRounded: Boolean = true, var r: Int = 50) : JButton(text) {
     override fun paintComponent(g: Graphics) {
         if (getModel().isArmed) {
             g.color = Color(102, 8, 0) //Цвет фона при нажатой кнопке

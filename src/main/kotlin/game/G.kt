@@ -1,16 +1,19 @@
 package game
 
-import gameinterface.MainWindow
-import utilite.Vector
-import graphics.AnimationManager
 import game.entities.Barracks
 import game.entities.MeleeUnit
+import gameinterface.MainWindow
+import graphics.AnimationManager
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import utilite.Vector
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import java.io.File
+import javax.sound.sampled.AudioInputStream
+import javax.sound.sampled.AudioSystem
 
 object G {
     /**
@@ -24,12 +27,17 @@ object G {
         Play,
         Win,
     }
+    enum class MusicState {
+        on,
+        off
+    }
 
     val animationManager = AnimationManager()
 
     var selectedCellType = Cell.Type.Water
 
     var state = State.Menu
+    var musicState = MusicState.on
 
     /**
      * Список игроков
@@ -54,14 +62,18 @@ object G {
      */
     val drawTask = mutableListOf<(Graphics) -> Unit>()
 
+
+
     init {
         startGame()
         animationManager.start()
+
     }
 
     fun startGame() {
         state = State.Menu
         curPlayerId = 0
+
 
         map = GameMap(100, 100)
         map.generateMapByTwoPoints(
@@ -148,6 +160,26 @@ object G {
         drawTask.forEach { it(g) }
         drawTask.clear()
 
+    }
+
+    val MenuMusic = AudioSystem.getAudioInputStream(File("src/main/resources/Music/Adding-the-Sun.wav"))
+    val GameMusic = AudioSystem.getAudioInputStream(File("src/main/resources/Music/Pleasant-Porridge.wav"))
+    val MenuMusicClip = AudioSystem.getClip()
+    val GameMusicClip = AudioSystem.getClip()
+
+    fun PlayMusic(){
+        MenuMusicClip.stop()
+        GameMusicClip.stop()
+        if(musicState == MusicState.on){
+            if(state == State.Menu){
+                MenuMusicClip.framePosition = 0
+                MenuMusicClip.start()
+            }
+            else{
+                GameMusicClip.framePosition = 0
+                GameMusicClip.start()
+            }
+        }
     }
 
     /**
@@ -290,5 +322,10 @@ object G {
         println(j["frames"]?.jsonArray?.utilite.get(0)?.jsonObject?.utilite.get("filename")?.toString())
         readLine()*/
         win = MainWindow()
+
+        GameMusicClip.open(GameMusic)
+        MenuMusicClip.open(MenuMusic)
+        PlayMusic()
+       // MusicPlay()
     }
 }

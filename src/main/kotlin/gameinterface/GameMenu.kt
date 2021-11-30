@@ -8,10 +8,17 @@ import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.io.File
+import javax.imageio.ImageIO
+import javax.sound.sampled.AudioInputStream
+import javax.sound.sampled.AudioSystem
 import javax.swing.*
 
 
+
 class GameMenu(winWidth: Int, winHeight: Int) {
+
+
     //во имя главного меню
     val menuPanel = ImagePanel("./src/main/resources/graphics/menuImages/KekStratMenuPic.png")
     //private val menuLabel = JLabel("KEKStrategy")
@@ -24,6 +31,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
     private var pVsEButton = GameButton("Player vs PC")
     private var editMapButton = GameButton("Edit Map")
     private var exitButton = GameButton("Exit")
+    private var MuteButton = GameButton()
 
     //во имя окна выбора карты
     val mapChoosePanel = ImagePanel("./src/main/resources/graphics/menuImages/KekStratMapChoosePic.png")
@@ -44,6 +52,15 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         "Description here"  //5 map
     )
 
+    var MuteButtonImg = listOf(
+        ImageIcon("src/main/resources/graphics/menuImages/Mute1.png"), // RedOn
+        ImageIcon("src/main/resources/graphics/menuImages/Mute2.png"), //1 DarkRedON
+        ImageIcon("src/main/resources/graphics/menuImages/Mute3.png"), //2 GrayOn
+        ImageIcon("src/main/resources/graphics/menuImages/Mute4.png"), //3 RedOff
+        ImageIcon("src/main/resources/graphics/menuImages/Mute5.png"),  //4 DarkRedOff
+        ImageIcon("src/main/resources/graphics/menuImages/Mute6.png"),  //4 GrayOff
+    )
+
     //во имя меню паузы
     val pausePanel = JPanel()
     private val pauseLabel = JLabel("<html><font color=\"#9a0c00 \">Pause")
@@ -56,6 +73,9 @@ class GameMenu(winWidth: Int, winHeight: Int) {
 
     //В девичестве FirstPaint (чем тоби FirstPaint не устроил, нормальное же название)
     private fun pack(winWidth: Int, winHeight: Int) {
+
+
+
         //Сборка панели главного меню
         menuPanel.layout = null
         menuPanel.preferredSize = Dimension(winWidth, winHeight)
@@ -68,6 +88,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pVsEButton.setBounds(winWidth / 13, winHeight / 3 + winHeight / 8 + 50, winWidth / 3, winHeight / 10)
         editMapButton.setBounds(winWidth / 13, winHeight / 3 + 2 * winHeight / 8 + 50, winWidth / 3, winHeight / 10)
         exitButton.setBounds(winWidth / 13, winHeight / 3 + 3 * winHeight / 8 + 50, winWidth / 3, winHeight / 10)
+        MuteButton.setBounds(winWidth - 70, winHeight - 70, winWidth / 16, winHeight / 12)
 
         editMapButton.addMouseListener(object: MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
@@ -83,6 +104,56 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pVsPButton.actionCommand = "pvp"
         pVsEButton.actionCommand = "pve"
         exitButton.actionCommand = "exit"
+      //  MuteButton.actionCommand = "mute"
+
+        MuteButton.icon = MuteButtonImg[0]
+        //Изменение иконки кнопки мута музыки в зависимости от состояния
+        MuteButton.addMouseListener(object: MouseAdapter() {
+            override fun mouseEntered(e: MouseEvent?) {
+                if(G.musicState == G.MusicState.on) {
+                    MuteButton.icon = MuteButtonImg[1]
+                }else{
+                    MuteButton.icon = MuteButtonImg[4]
+                }
+                super.mouseEntered(e)
+            }
+            override fun mouseExited(e: MouseEvent?) {
+                if(G.musicState == G.MusicState.on) {
+                    MuteButton.icon = MuteButtonImg[0]
+                }else{
+                    MuteButton.icon = MuteButtonImg[3]
+                }
+                super.mouseExited(e)
+            }
+
+            override fun mousePressed(e: MouseEvent?) {
+                if(G.musicState == G.MusicState.on) {
+                    MuteButton.icon = MuteButtonImg[2]
+                }else{
+                    MuteButton.icon = MuteButtonImg[5]
+                }
+                super.mousePressed(e)
+            }
+            override fun mouseReleased(e: MouseEvent?) {
+                if(G.musicState == G.MusicState.on) {
+                    MuteButton.icon = MuteButtonImg[0]
+                }else{
+                    MuteButton.icon = MuteButtonImg[3]
+                }
+                super.mouseReleased(e)
+            }
+            override fun mouseClicked(e: MouseEvent?) {
+                if(G.musicState == G.MusicState.on) {
+                    G.musicState = G.MusicState.off
+                    MuteButton.icon = MuteButtonImg[4]
+                }else{
+                    G.musicState = G.MusicState.on
+                    MuteButton.icon = MuteButtonImg[1]
+                }
+                G.PlayMusic()
+                super.mouseClicked(e)
+            }
+        })
 
 
         val actLis = ActionListener { e ->
@@ -107,6 +178,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
                     G.win.gamePanel.isVisible = false
                     standardVisible()
                     G.startGame()
+                    G.PlayMusic()
                 }
                 //Кнопачки меню выбора карт
                 else -> {
@@ -114,6 +186,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
                     //game.G.mapNum = e.getActionCommand().toInt() Отправка номера выбранной карты
                     mapChoosePanel.isVisible = false
                     G.win.gamePanel.isVisible = true
+                    G.PlayMusic()
                 }
             }
         }
@@ -121,12 +194,14 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pVsPButton.addActionListener(actLis)
         pVsEButton.addActionListener(actLis)
         exitButton.addActionListener(actLis)
+       // MuteButton.addActionListener(actLis)
 
         //  menuPanel.add(menuLabel)
         menuPanel.add(pVsPButton)
         menuPanel.add(pVsEButton)
         menuPanel.add(editMapButton)
         menuPanel.add(exitButton)
+        menuPanel.add(MuteButton)
 
         //Сборка панели выбора карты
         mapChoosePanel.layout = null
@@ -225,6 +300,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pausePanel.add(pauseLabel)
         pausePanel.add(toMainMenuButton)
         pausePanel.add(continueButton)
+        //pausePanel.add(MuteButton)
 
         standardVisible()
     }
@@ -234,6 +310,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         mapChoosePanel.isVisible = false
         pausePanel.isVisible = false
     }
+
 
     fun keyClicked(ev: KeyEvent) {
         when (ev.keyCode) {
