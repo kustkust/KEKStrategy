@@ -2,8 +2,10 @@ package game
 
 import game.entities.BaseEntity
 import utilite.*
+import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.*
 import java.awt.event.MouseEvent
@@ -71,6 +73,7 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         )
 
     fun paint(g: Graphics) {
+        //Рисуем клетки
         val curPlayerObs = G.curPlayer.observableArea
         cells.matrixForEachIndexed(
             cellTranslation, winSizeInCells
@@ -90,14 +93,8 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
                 cell.paint(g)
             }
         }
-        cells.matrixForEachIndexed(
-            cellTranslation, winSizeInCells
-        ) { x, y, cell ->
-            if (!fogOfWar || curPlayerObs[x][y] == ObservableStatus.Observable) {
-                cell.build?.paint(g)
-                cell.unit?.paint(g)
-            }
-        }
+
+        //Рисуем сетку
         g.color = Color(128, 128, 128, 128)
         for (i in 0..height) {
             g.drawLine(0, i * cs, width * cs, i * cs)
@@ -106,14 +103,51 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
             g.drawLine(i * cs, 0, i * cs, height * cs)
         }
 
-        /**g.color = Color.pink
-        utilite.getCellCircle(
-        utilite.Vector(10, 10),
-        round(game.G.win.mPos.distance(utilite.Vector(10 * cs + cs / 2, 10 * cs + cs / 2))/cs).toInt()
-        ).forEachIndexed() { i, it->
-        g.utilite.drawRect(it.x*cs+cs/4,it.y*cs+cs/4,cs/2,cs/2)
-        g.utilite.drawString(i.toString(),it.x*cs+cs/4,it.y*cs+cs/4)
-        }*/
+        //Рисуем здания
+        cells.matrixForEachIndexed(
+            cellTranslation, winSizeInCells
+        ) { x, y, cell ->
+            if (!fogOfWar || curPlayerObs[x][y] == ObservableStatus.Observable) {
+                cell.build?.paint(g)
+            }
+        }
+
+        //Рисуем маршруты
+        G.curPlayer.selectedUnit?.let { unit ->
+            g.color = Color.black
+            val g2 = g as Graphics2D
+            val bs = g2.stroke
+            g2.stroke = BasicStroke(3f)
+            G.map.drawPath(g2, unit.pos, unit.path)
+            g2.stroke = bs
+            val beg = if (G.win.isControlDown) unit.curDist else unit.pos
+            val mp = G.map.selectedCellPos
+            G.curPlayer.tmpPath = if (G.win.isControlDown) {
+                G.map.aStar(beg, mp) { unit.canMoveTo(it) }
+            } else {
+                G.map.aStar(beg, mp) { unit.canMoveTo(it) }
+            }
+            G.curPlayer.tmpPath?.let {
+                g.color = Color.white
+                G.map.drawPath(g, (beg - G.map.cellTranslation), it)
+            }
+        }
+
+        //Рисуем юнитов
+        cells.matrixForEachIndexed(
+            cellTranslation, winSizeInCells
+        ) { x, y, cell ->
+            if (!fogOfWar || curPlayerObs[x][y] == ObservableStatus.Observable) {
+                cell.unit?.paint(g)
+            }
+        }
+
+        //Рисуем рамку выбора
+        G.curPlayer.selectedEntity?.let {
+            g.color = Color.BLACK
+            g.drawRect(it.paintPos.x + 1, it.paintPos.y + 1, cs - 2, cs - 2)
+            it.paintInterface(g)
+        }
     }
 
     fun mouseMoved(ev: MouseEvent) {
@@ -183,7 +217,7 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
      * @param path путь, который надо нарисовать
      */
     fun drawPath(g: Graphics, cur_: Vector, path: MutableList<Direction>) {
-        var cur = cur_
+        var cur = getTranslatedForDraw(cur_)
         val lx = IntArray(path.size + 1) { 0 }
         lx[0] = cur.x + cs / 2
         val ly = IntArray(path.size + 1) { 0 }
@@ -325,7 +359,7 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
     }
 
     fun setAnimation() {
-        cells.matrixForEachIndexed {_, c ->
+        cells.matrixForEachIndexed { _, c ->
             c.setAnimation()
         }
     }

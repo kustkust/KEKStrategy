@@ -10,7 +10,8 @@ class AnimationManager {
     val PATH = "./src/main/resources/graphics/animations/"
 
     val animations = mutableListOf<Animation>()
-    val textures: MutableMap<String, BufferedImage> = mutableMapOf()
+
+    private val textures: MutableMap<String, BufferedImage> = mutableMapOf()
     fun getTexture(name: String) : BufferedImage {
         if (!textures.containsKey(name)){
             textures[name] = ImageIO.read(File(PATH + name))
@@ -18,14 +19,22 @@ class AnimationManager {
         return textures.getValue(name)
     }
 
+    private val animationCash: MutableMap<String, Animation> = mutableMapOf()
+    fun getAnimation(name: String) : Animation {
+        if(!animationCash.containsKey(name)){
+            animationCash[name] = Animation(name)
+        }
+        return animationCash.getValue(name).copy()
+    }
+
     val timer: Timer = Timer(100) {
         animations.forEach {
             it.nextFrame(System.currentTimeMillis())
-            try {
-                G.win.gamePanel.repaint()
-            } catch (t: Throwable) {
+        }
+        try {
+            G.win.gamePanel.repaint()
+        } catch (t: Throwable) {
 
-            }
         }
     }
 

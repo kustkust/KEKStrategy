@@ -57,22 +57,16 @@ class MainWindow : JFrame() {
             override fun keyPressed(e: KeyEvent) {
                 isControlDown = e.isControlDown
                 G.keyPressed(e)
-                gamePanel.repaint()
-                mainPanel.repaint()
             }
 
             override fun keyReleased(e: KeyEvent) {
                 isControlDown = e.isControlDown
                 G.keyClicked(e)
-                gamePanel.repaint()
-                mainPanel.repaint()
             }
         })
         val mouseAdapter = object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 G.mouseClicked(e)
-                gamePanel.repaint()
-                mainPanel.repaint()
             }
 
             override fun mousePressed(e: MouseEvent) {
@@ -89,8 +83,6 @@ class MainWindow : JFrame() {
 
             private fun mouseMoved_(e: MouseEvent) {
                 G.mouseMoved(e)
-                gamePanel.repaint()
-                mainPanel.repaint()
             }
 
             override fun mouseMoved(e: MouseEvent) = mouseMoved_(e)
@@ -104,15 +96,14 @@ class MainWindow : JFrame() {
         setLocation(dim.width / 2 - size.width / 2, dim.height / 2 - size.height / 2)
     }
 
-    private var _mPos = Vector(0, 0)
-
-    val mPos: Vector
+    var mPos: Vector = Vector(0, 0)
+        private set
         get() {
             val tmp = gamePanel.mousePosition
             if (tmp != null) {
-                _mPos = tmp.toVector
+                field = tmp.toVector
             }
-            return _mPos
+            return field
         }
 
     class GamePanel : JPanel() {

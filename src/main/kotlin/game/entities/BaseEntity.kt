@@ -55,7 +55,7 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     /**
      * Положение левого верхнего угла сущности на экране
      */
-    val paintPos: Vector
+    open val paintPos: Vector
         get() = (pos - G.map.cellTranslation) * G.map.cs
 
     lateinit var animation: Animation

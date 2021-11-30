@@ -14,7 +14,7 @@ class MeleeUnit(owner: Player, pos: Vector = Vector()) : BaseUnit(owner, pos) {
         get() = Factory.cost
     override val factory get() = Factory
     init {
-        animation = Animation("Sprite-0001")
+        animation = G.animationManager.getAnimation("Sprite-0001")
     }
 
     var damage = Factory.baseDamage

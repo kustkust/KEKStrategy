@@ -8,6 +8,7 @@ import utilite.Vector
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON3
+import javax.swing.Timer
 
 abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
     BaseEntity(owner, pos) {
@@ -37,6 +38,42 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
 
     override fun mouseMoved(ev: MouseEvent) {
 
+    }
+
+    var isMoving = false
+    lateinit var moveTimer: Timer
+    var paintSubTrans = Vector()
+    override val paintPos: Vector
+        get() = super.paintPos + paintSubTrans
+
+    init {
+        val oneStepTime = 500
+        val steps = 10
+        var curStep = 0
+        moveTimer = Timer(oneStepTime / steps) {
+            if (path.isNotEmpty()) {
+                if (curStep == steps && move(path.first())) {
+                    curStep = 0
+                    paintSubTrans.x = 0
+                    paintSubTrans.y = 0
+                    path.removeAt(0)
+                    owner.updateObservableArea()
+                } else {
+                    curStep++
+                    paintSubTrans = path.first().offset * G.map.cs * curStep / steps
+                }
+            } else {
+                moveTimer.stop()
+                owner.updateObservableArea()
+                isMoving = false
+            }
+        }
+    }
+
+    private fun animatedFinishMove(): Boolean {
+        isMoving = true
+        moveTimer.start()
+        return false
     }
 
     fun finishMove(): Boolean {
@@ -102,7 +139,7 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
         val p = G.map.selectedCellPos
         buildPathTo(p, ev.isControlDown)
         if (ev.clickCount == 2) {
-            finishMove()
+            animatedFinishMove()
         }
     }
 

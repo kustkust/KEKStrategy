@@ -51,6 +51,9 @@
   "image": "Water.png",
   "format": "RGBA8888",
   "size": { "w": 160, "h": 32 },
-  "scale": "1"
+  "scale": "1",
+  "frameTags": [
+   { "name": "ping-pong", "from": 0, "to": 4, "direction": "pingpong" }
+  ]
  }
 }

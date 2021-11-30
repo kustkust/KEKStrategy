@@ -138,33 +138,6 @@ class Player(val name: String) {
     var tmpPath: MutableList<Direction>? = null
 
     fun paint(g: Graphics) {
-        val cs = G.map.cs
-        selectedUnit?.let { unit ->
-            g.color = Color.black
-            val g2 = g as Graphics2D
-            val bs = g2.stroke
-            g2.stroke = BasicStroke(3f)
-            G.map.drawPath(g2, unit.paintPos, unit.path)
-            g2.stroke = bs
-            val beg = if (G.win.isControlDown) unit.curDist else unit.pos
-            if (G.map.selectedCellChanged) {
-                val mp = G.map.selectedCellPos
-                tmpPath = if (G.win.isControlDown) {
-                    G.map.aStar(beg, mp) { unit.canMoveTo(it) }
-                } else {
-                    G.map.aStar(beg, mp) { unit.canMoveTo(it) }
-                }
-            }
-            tmpPath?.let {
-                g.color = Color.white
-                G.map.drawPath(g, (beg - G.map.cellTranslation) * cs, it)
-            }
-        }
-        selectedEntity?.let {
-            g.color = Color.BLACK
-            g.drawRect(it.paintPos.x + 1, it.paintPos.y + 1, cs - 2, cs - 2)
-            it.paintInterface(g)
-        }
         if (isTechOpen) {
             technologies.paint(g)
         }

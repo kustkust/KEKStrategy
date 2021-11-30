@@ -7,6 +7,7 @@ import game.entities.BaseBuild
 import game.entities.BaseUnit
 import java.awt.Color
 import java.awt.Graphics
+import kotlin.random.Random
 
 class Cell(val pos: Vector, var type: Type = Type.Water) {
     var unit: BaseUnit? = null
@@ -15,9 +16,9 @@ class Cell(val pos: Vector, var type: Type = Type.Water) {
     var animation: Animation? = null
 
     fun setAnimation() {
-        animation = when(type) {
-            Type.Water -> Animation("Water")
-            else -> null
+        animation = G.animationManager.getAnimation(type.toString())
+        animation?.let { animation ->
+            animation.curFrameInd = Random.nextInt(0, animation.size)
         }
     }
 
