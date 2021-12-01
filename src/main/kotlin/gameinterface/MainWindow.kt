@@ -50,6 +50,7 @@ class MainWindow : JFrame() {
         mainPanel.add(menu.menuPanel)
         mainPanel.add(menu.mapChoosePanel)
         mainPanel.add(menu.pausePanel)
+
         glassPane = menu.pausePanel
         pack()
 

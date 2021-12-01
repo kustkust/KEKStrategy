@@ -124,12 +124,7 @@ object G {
                 paintGame(g)
             }
             State.Win -> {
-                paintGame(g)
-                val s = "game.Player ${curPlayer.name} win!"
-                val w = g.fontMetrics.stringWidth(s)
-                val h = g.fontMetrics.height
-                g.color = curPlayer.color
-                g.drawString(s, (win.innerSize.x - w) / 2, (win.innerSize.y + h) / 2)
+                win.menu.showWinner(curPlayer.name, curPlayer.color)
             }
             State.EditMap -> {
                 map.paint(g)
@@ -142,7 +137,7 @@ object G {
                 g.drawString("${win.isLeftButtonDown}", 10,10)
             }
             else -> {
-                //win.Panel.setVisible(false)
+
             }
         }
     }
@@ -334,6 +329,5 @@ object G {
         GameMusicClip.open(GameMusic)
         MenuMusicClip.open(MenuMusic)
         PlayMusic()
-       // MusicPlay()
     }
 }

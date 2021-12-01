@@ -47,7 +47,7 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
         get() = super.paintPos + paintSubTrans
 
     init {
-        val oneStepTime = 500
+        val oneStepTime = 100
         val steps = 10
         var curStep = 0
         moveTimer = Timer(oneStepTime / steps) {
