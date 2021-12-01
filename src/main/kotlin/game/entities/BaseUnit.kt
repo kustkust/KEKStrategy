@@ -10,8 +10,8 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON3
 import javax.swing.Timer
 
-abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
-    BaseEntity(owner, pos) {
+abstract class BaseUnit(owner: Player, pos_: Vector = Vector(0, 0)) :
+    BaseEntity(owner, pos_) {
     var maxMovePoints = 1000
     var remMovePoints = maxMovePoints
     var maxAttackPerTurn = 1
@@ -41,8 +41,8 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
     }
 
     var isMoving = false
-    lateinit var moveTimer: Timer
-    var paintSubTrans = Vector()
+    private lateinit var moveTimer: Timer
+    private var paintSubTrans = Vector()
     override val paintPos: Vector
         get() = super.paintPos + paintSubTrans
 
@@ -51,9 +51,12 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
         val steps = 10
         var curStep = 0
         moveTimer = Timer(oneStepTime / steps) {
-            val newCell = G.map[pos + path.first().offset]
-            if (path.isNotEmpty() && remMovePoints >= newCell.type.movePointCost && canMoveTo(newCell)) {
+            if (path.isNotEmpty() &&
+                remMovePoints >= G.map[this.pos + path.first().offset].type.movePointCost &&
+                canMoveTo(G.map[this.pos + path.first().offset])
+            ) {
                 if (curStep == steps && move(path.first())) {
+                    G.map.centerOn(this)
                     curStep = 0
                     paintSubTrans.x = 0
                     paintSubTrans.y = 0
@@ -65,6 +68,8 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
                 }
             } else {
                 moveTimer.stop()
+                paintSubTrans.x = 0
+                paintSubTrans.y = 0
                 owner.updateObservableArea()
                 isMoving = false
             }
@@ -88,7 +93,10 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
     }
 
     override fun endTurn(): Boolean {
-        return finishMove()
+        animatedFinishMove()
+        return path.isNotEmpty() &&
+                remMovePoints >= G.map[pos + path.first().offset].type.movePointCost &&
+                canMoveTo(G.map[pos + path.first().offset])
     }
 
     override fun newTurn() {
@@ -139,6 +147,7 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
     private fun moveControl(ev: MouseEvent) {
         val p = G.map.selectedCellPos
         buildPathTo(p, ev.isControlDown)
+        isTurnEnded = false
         if (ev.clickCount == 2) {
             animatedFinishMove()
         }

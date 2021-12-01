@@ -162,16 +162,6 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         when (ev.keyCode) {
             VK_F -> fogOfWar = !fogOfWar
         }
-        /*val tmp = cellTranslation + when(ev.keyCode) {
-            VK_UP->game.Direction.Up.offset
-            VK_DOWN->game.Direction.Down.offset
-            VK_LEFT->game.Direction.Left.offset
-            VK_RIGHT->game.Direction.Right.offset
-            else->utilite.Vector()
-        }
-        if(inMap(tmp)){
-            cellTranslation = tmp
-        }*/
     }
 
     fun keyPressed(ev: KeyEvent) {
@@ -208,7 +198,6 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
     /**
      * Выбранная клетка карты, над которой сейчас находится мышь
      */
-    @Suppress("unused")
     val selectedCell
         get() = this[selectedCellPos]
 
@@ -243,6 +232,7 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         if (p.y < 0) p.y = 0
         if (p.x + winSizeInCells.x > size.x) p.x = p.x + winSizeInCells.x
         if (p.y + winSizeInCells.y > size.y) p.y = p.y + winSizeInCells.y
+        selectedCellPos += p - cellTranslation
         cellTranslation = p
     }
 
