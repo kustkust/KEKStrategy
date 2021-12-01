@@ -13,6 +13,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import utilite.Rect
 import utilite.Vector
+import java.awt.Color
 import java.awt.Graphics
 import java.awt.image.BufferedImage
 import java.io.File
@@ -21,6 +22,12 @@ import kotlin.random.Random
 
 class Animation() {
     @Serializable
+    data class FrameJson(
+        val filename: String,
+        val frame: Rect,
+        val duration: Int = 500,
+    )
+
     data class Frame(
         var frame: Rect,
         var duration: Int = 500
@@ -42,7 +49,7 @@ class Animation() {
         Pingpong;
 
         @Serializer(forClass = AnimDirect::class)
-        object AnimDirectSerializer: KSerializer<AnimDirect> {
+        object AnimDirectSerializer : KSerializer<AnimDirect> {
             override val descriptor: SerialDescriptor
                 get() = PrimitiveSerialDescriptor("AnimDirect", PrimitiveKind.STRING)
 
@@ -58,7 +65,7 @@ class Animation() {
     }
 
     @Serializable
-    class ForRead(var frames: List<Frame>, var meta: Meta)
+    class ForRead(var frames: List<FrameJson>, var meta: Meta)
 
     @Serializable
     data class Meta(var image: String = "", var frameTags: List<FrameTagsJson>? = null)
@@ -111,8 +118,8 @@ class Animation() {
         frames = frames_
     }
 
-    constructor(name: String) : this() {
-        loadFromJson(name)
+    constructor(name: String, color: Color? = null) : this() {
+        loadFromJson(name, color)
     }
 
     fun nextFrame(curTime: Long) {
@@ -132,7 +139,7 @@ class Animation() {
                         curFrameInd--
                     }
                 }
-                AnimDirect.Pingpong -> when(pingPongDir) {
+                AnimDirect.Pingpong -> when (pingPongDir) {
                     AnimDirect.Forward -> {
                         if (curFrameInd == curFrameTag.to) {
                             curFrameInd--
@@ -158,23 +165,31 @@ class Animation() {
 
     fun paint(g: Graphics, p: Vector) = curFrame.paint(g, p, source)
 
-    fun loadFromJson(name: String) {
+    private fun loadFromJson(name: String, color: Color? = null) {
         val path = G.animationManager.PATH + name + ".json"
         val s = File(path).bufferedReader().readText()
         val json = Json {
             ignoreUnknownKeys = true
         }
         val forRead: ForRead = json.decodeFromString(s)
-        frames = forRead.frames
+        frames = forRead.frames.filter { it.filename != MaskLayerName }.map { Frame(it.frame, it.duration) }
+        val maskFrames = forRead.frames.filter { it.filename == MaskLayerName }.map { Frame(it.frame, it.duration) }
         forRead.meta.frameTags?.forEach {
             frameTags[it.name] = FrameTag(it.from, it.to, it.direction)
         }
         frameTags[DefaultFrameName] = FrameTag(0, frames.size - 1, AnimDirect.Forward)
-        source = G.animationManager.getTexture(forRead.meta.image)
-        curFrameInd = Random.nextInt(0, frames.size)
+        source = if (color != null) {
+            G.animationManager.getTexture(
+                forRead.meta.image,
+                color,
+                frames.map { it.frame } zip maskFrames.map { it.frame })
+        } else {
+            G.animationManager.getTexture(forRead.meta.image)
+        }
     }
 
     companion object {
         const val DefaultFrameName = "__default"
+        const val MaskLayerName = "Mask"
     }
 }

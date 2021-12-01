@@ -51,7 +51,8 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
         val steps = 10
         var curStep = 0
         moveTimer = Timer(oneStepTime / steps) {
-            if (path.isNotEmpty()) {
+            val newCell = G.map[pos + path.first().offset]
+            if (path.isNotEmpty() && remMovePoints >= newCell.type.movePointCost && canMoveTo(newCell)) {
                 if (curStep == steps && move(path.first())) {
                     curStep = 0
                     paintSubTrans.x = 0
@@ -60,7 +61,7 @@ abstract class BaseUnit(owner: Player, pos: Vector = Vector(0, 0)) :
                     owner.updateObservableArea()
                 } else {
                     curStep++
-                    paintSubTrans = path.first().offset * G.map.cs * curStep / steps
+                    paintSubTrans = path.first().offset * G.map.cs * curStep / (steps + 1)
                 }
             } else {
                 moveTimer.stop()

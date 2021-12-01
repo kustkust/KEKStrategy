@@ -8,12 +8,9 @@ import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.io.File
-import javax.imageio.ImageIO
-import javax.sound.sampled.AudioInputStream
-import javax.sound.sampled.AudioSystem
-import javax.swing.*
-
+import javax.swing.ImageIcon
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 
 class GameMenu(winWidth: Int, winHeight: Int) {
@@ -71,11 +68,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pack(winWidth, winHeight)
     }
 
-    //В девичестве FirstPaint (чем тоби FirstPaint не устроил, нормальное же название)
     private fun pack(winWidth: Int, winHeight: Int) {
-
-
-
         //Сборка панели главного меню
         menuPanel.layout = null
         menuPanel.preferredSize = Dimension(winWidth, winHeight)
@@ -90,7 +83,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         exitButton.setBounds(winWidth / 13, winHeight / 3 + 3 * winHeight / 8 + 50, winWidth / 3, winHeight / 10)
         MuteButton.setBounds(winWidth - 70, winHeight - 70, winWidth / 16, winHeight / 12)
 
-        editMapButton.addMouseListener(object: MouseAdapter() {
+        editMapButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 G.state = G.State.EditMap
                 G.map.fogOfWar = false
@@ -104,54 +97,52 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pVsPButton.actionCommand = "pvp"
         pVsEButton.actionCommand = "pve"
         exitButton.actionCommand = "exit"
-      //  MuteButton.actionCommand = "mute"
+        //  MuteButton.actionCommand = "mute"
 
         MuteButton.icon = MuteButtonImg[0]
         //Изменение иконки кнопки мута музыки в зависимости от состояния
-        MuteButton.addMouseListener(object: MouseAdapter() {
+        MuteButton.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if (G.musicState == G.MusicState.on) {
                     MuteButton.icon = MuteButtonImg[1]
-                }else{
+                } else {
                     MuteButton.icon = MuteButtonImg[4]
                 }
-                super.mouseEntered(e)
             }
+
             override fun mouseExited(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if (G.musicState == G.MusicState.on) {
                     MuteButton.icon = MuteButtonImg[0]
-                }else{
+                } else {
                     MuteButton.icon = MuteButtonImg[3]
                 }
-                super.mouseExited(e)
             }
 
             override fun mousePressed(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if (G.musicState == G.MusicState.on) {
                     MuteButton.icon = MuteButtonImg[2]
-                }else{
+                } else {
                     MuteButton.icon = MuteButtonImg[5]
                 }
-                super.mousePressed(e)
             }
+
             override fun mouseReleased(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if (G.musicState == G.MusicState.on) {
                     MuteButton.icon = MuteButtonImg[0]
-                }else{
+                } else {
                     MuteButton.icon = MuteButtonImg[3]
                 }
-                super.mouseReleased(e)
             }
+
             override fun mouseClicked(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if (G.musicState == G.MusicState.on) {
                     G.musicState = G.MusicState.off
                     MuteButton.icon = MuteButtonImg[4]
-                }else{
+                } else {
                     G.musicState = G.MusicState.on
                     MuteButton.icon = MuteButtonImg[1]
                 }
                 G.PlayMusic()
-                super.mouseClicked(e)
             }
         })
 
@@ -194,7 +185,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pVsPButton.addActionListener(actLis)
         pVsEButton.addActionListener(actLis)
         exitButton.addActionListener(actLis)
-       // MuteButton.addActionListener(actLis)
+        // MuteButton.addActionListener(actLis)
 
         //  menuPanel.add(menuLabel)
         menuPanel.add(pVsPButton)
@@ -210,7 +201,12 @@ class GameMenu(winWidth: Int, winHeight: Int) {
 
         val mapText = GameLabel()
 
-        mapText.setBounds(winWidth / 50 + winWidth / 6, winHeight / 2 + winHeight / 5 - 10, winWidth / 2 + winWidth / 8, winHeight/2 - 130)
+        mapText.setBounds(
+            winWidth / 50 + winWidth / 6,
+            winHeight / 2 + winHeight / 5 - 10,
+            winWidth / 2 + winWidth / 8,
+            winHeight / 2 - 130
+        )
         mapText.isVisible = false
         mapChoosePanel.add(mapText)
 
@@ -219,14 +215,13 @@ class GameMenu(winWidth: Int, winHeight: Int) {
             mapButton.setBounds(winWidth / 50 + winWidth / 5 * index, winHeight / 2, winWidth / 6, winHeight / 6)
             mapButton.addActionListener(actLis)
 
-
-
-            mapButton.addMouseListener(object: MouseAdapter() {
+            mapButton.addMouseListener(object : MouseAdapter() {
                 override fun mouseEntered(e: MouseEvent?) {
                     mapText.isVisible = true
                     mapText.text = MapDescriptions[index]
                     super.mouseEntered(e)
                 }
+
                 override fun mouseExited(e: MouseEvent?) {
                     mapText.isVisible = false
                     super.mouseEntered(e)
@@ -239,10 +234,10 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         }
 
 
-       /* val mapName = JLabel()
-        val mapText = JTextPane()
-        val startButton = GameButton("<html><font color=\"#9a0c00 \">Start Game")
-        val mapList = JList<String>()*/
+        /* val mapName = JLabel()
+         val mapText = JTextPane()
+         val startButton = GameButton("<html><font color=\"#9a0c00 \">Start Game")
+         val mapList = JList<String>()*/
 /*
 
         mapName.setBounds(winWidth / 2 + 30, winHeight / 2, winWidth / 2 - 30, 30)

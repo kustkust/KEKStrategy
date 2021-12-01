@@ -1,7 +1,8 @@
-package game
+package game.entities
 
-import game.entities.*
+import game.*
 import gameinterface.CreateMenu
+import graphics.Animation
 import utilite.*
 import java.awt.Color
 import java.awt.Graphics
@@ -15,10 +16,15 @@ class PlayerBase(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, p
 
     private val maxBuildDistance = 5
 
+    init {
+        animation = G.animationManager.getAnimation("PlayerBase", owner.color)
+    }
+
     override fun paint(g: Graphics) {
         g.color = owner.color
         val p = paintPos
-        g.fillRect(p.x + 2, p.y + 2, G.map.cs - 4, G.map.cs - 4)
+        //g.fillRect(p.x + 2, p.y + 2, G.map.cs - 4, G.map.cs - 4)
+        super.paint(g)
         g.color = Color.BLACK
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
 

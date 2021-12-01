@@ -129,7 +129,7 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
             }
             G.curPlayer.tmpPath?.let {
                 g.color = Color.white
-                G.map.drawPath(g, (beg - G.map.cellTranslation), it)
+                G.map.drawPath(g, beg, it)
             }
         }
 
@@ -175,7 +175,7 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
     }
 
     fun keyPressed(ev: KeyEvent) {
-        val tmp = cellTranslation + when (ev.keyCode) {
+        val d = when (ev.keyCode) {
             VK_UP -> Direction.Up.offset
             VK_DOWN -> Direction.Down.offset
             VK_LEFT -> Direction.Left.offset
@@ -186,7 +186,9 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
             VK_D -> Direction.Right.offset
             else -> Vector()
         }
+        val tmp = cellTranslation + d
         if (inMap(tmp) && inMap(tmp + winSizeInCells)) {
+            selectedCellPos += d
             cellTranslation = tmp
         }
     }

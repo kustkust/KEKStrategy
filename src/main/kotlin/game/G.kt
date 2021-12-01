@@ -2,6 +2,7 @@ package game
 
 import game.entities.Barracks
 import game.entities.MeleeUnit
+import game.entities.PlayerBase
 import gameinterface.MainWindow
 import graphics.AnimationManager
 import kotlinx.serialization.SerialName
@@ -11,8 +12,8 @@ import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import java.awt.image.BufferedImage
 import java.io.File
-import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 
 object G {
@@ -321,6 +322,13 @@ object G {
         println(t.frames[0].filename)
         println(j["frames"]?.jsonArray?.utilite.get(0)?.jsonObject?.utilite.get("filename")?.toString())
         readLine()*/
+
+        val c = Color(255,11,47,12)
+        val a = c.rgb shr 24 and 0xFF
+        val r = c.rgb shr 16 and 0xFF
+        val g = c.rgb shr 8  and 0xFF
+        val b = c.rgb shr 0 and 0xFF
+
         win = MainWindow()
 
         GameMusicClip.open(GameMusic)

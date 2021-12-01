@@ -40,6 +40,7 @@ fun <T> Matrix<T>.changeMatrixSize(newWidth: Int, newHeight: Int, init: (Int, In
     val oldWidth = width
     val oldHeight = height
     if (oldWidth < newWidth) {
+        ensureCapacity(newWidth)
         var n = newWidth - oldWidth
         while (n > 0) {
             add(makeArrayList(newHeight) { init(newWidth - n, it) })
@@ -50,6 +51,7 @@ fun <T> Matrix<T>.changeMatrixSize(newWidth: Int, newHeight: Int, init: (Int, In
     }
     if (oldHeight < newHeight) {
         for(x in 0 until min(oldWidth, newWidth)) {
+            this[x].ensureCapacity(newHeight)
             var n = newHeight - oldHeight
             while (n > 0) {
                 this[x].add(init(x, newHeight - n))
