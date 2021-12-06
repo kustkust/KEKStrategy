@@ -2,7 +2,8 @@ package game.entities
 
 import game.*
 import gameinterface.CreateMenu
-import utilite.Vector
+import graphics.Animation
+import utility.Vector
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
@@ -21,7 +22,6 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
     private val unitsList = ArrayList(Factory.creatableUnits)
     private val unitsMenu = CreateMenu(unitsList, owner)
 
-
     private fun spawnUnit(i: Int) {
         if (curSpawned > 0 &&
             onCell.unit == null &&
@@ -34,14 +34,8 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
     }
 
     override fun paint(g: Graphics) {
-        g.color = owner.color
+        super.paint(g)
         val p = paintPos
-        g.fillRect(
-            p.x + 2,
-            p.y + G.map.cs / 2 + 2,
-            G.map.cs - 4,
-            G.map.cs / 2 - 2
-        )
         g.color = Color.BLACK
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
     }
@@ -53,7 +47,7 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
         curSpawned = maxSpawnPerTurn
     }
 
-    override fun mouseClicked(ev: MouseEvent) {
+    override fun mousePressed(ev: MouseEvent) {
         unitsMenu.mouseClicked(ev)
         if(unitsMenu.selectedIndex!=-1){
             spawnUnit(unitsMenu.selectedIndex)
@@ -78,9 +72,9 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
 
     object Factory : BaseFactory {
         override fun createEntity(owner: Player, pos: Vector): BaseEntity = Barracks(owner, pos)
-        override fun paintPreview(g: Graphics) {
-            g.fillRect(2, G.map.cs / 2 + 2, G.map.cs - 4, G.map.cs / 2 - 2)
-        }
+        override val animationPreviewCash = mutableMapOf<Color, Animation>()
+
+        override val entityName = Barracks::class.simpleName?:""
 
         val creatableUnits = mutableListOf<BaseFactory>(MeleeUnit.Factory)
         override val cost: Map<ResourceType, Int> = mapOf(ResourceType.Gold to 5)

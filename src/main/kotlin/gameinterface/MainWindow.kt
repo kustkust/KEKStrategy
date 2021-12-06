@@ -1,8 +1,8 @@
 package gameinterface
 
 import game.G
-import utilite.Vector
-import utilite.toVector
+import utility.Vector
+import utility.toVector
 import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.Graphics

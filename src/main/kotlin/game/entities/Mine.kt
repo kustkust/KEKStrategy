@@ -1,48 +1,23 @@
 package game.entities
 
 import game.*
-import utilite.Vector
-import utilite.makePolygon
-import java.awt.Graphics
+import graphics.Animation
+import utility.Vector
+import utility.makePolygon
+import java.awt.Color
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 
-class Mine(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, pos) {
-    override fun paint(g: Graphics) {
-        val cs = G.map.cs
-        val p = paintPos
-        g.color = owner.color
-        g.fillPolygon(
-            makePolygon(
-                p + Vector(2, cs / 2),
-                p + Vector(cs - 2, cs / 2),
-                p + Vector(cs - 2, cs - 2),
-                p + Vector(cs * 2 / 3, cs - 2),
-                p + Vector(cs * 2 / 3, cs * 3 / 4),
-                p + Vector(cs / 3, cs * 3 / 4),
-                p + Vector(cs / 3, cs - 2),
-                p + Vector(2, cs - 2)
-            )
-        )
-    }
-
+class Mine(owner: Player, pos: Vector) : BaseBuild(owner, pos) {
     override val factory get() = Factory
+
+    init {
+        animation = G.animationManager.getAnimation("Mine", owner.color)
+    }
 
     override fun newTurn() {
         super.newTurn()
         owner.changeResource(ResourceType.Stone, 4)
-    }
-
-    override fun mouseClicked(ev: MouseEvent) {
-        //TO DO("Not yet implemented")
-    }
-
-    override fun mouseMoved(ev: MouseEvent) {
-        //TO DO("Not yet implemented")
-    }
-
-    override fun keyClicked(ev: KeyEvent) {
-        //TO DO("Not yet implemented")
     }
 
     override val allowedCells: MutableList<Cell.Type>
@@ -52,24 +27,10 @@ class Mine(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, pos) {
 
     object Factory : BaseFactory {
         override fun createEntity(owner: Player, pos: Vector) = Mine(owner, pos)
+        override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override fun paintPreview(g: Graphics) {
-            val cs = G.map.cs
-            g.fillPolygon(
-                makePolygon(
-                    Vector(2, cs / 2),
-                    Vector(cs - 2, cs / 2),
-                    Vector(cs - 2, cs - 2),
-                    Vector(cs * 2 / 3, cs - 2),
-                    Vector(cs * 2 / 3, cs * 3 / 4),
-                    Vector(cs / 3, cs * 3 / 4),
-                    Vector(cs / 3, cs - 2),
-                    Vector(2, cs - 2)
-                )
-            )
-        }
-
-        override val cost: Cost = mapOf(
+        override val entityName = Mine::class.simpleName?:""
+        override val cost: Cost = makeCost(
             ResourceType.Gold to 10,
             ResourceType.Tree to 10,
         )

@@ -1,7 +1,7 @@
 package graphics
 
-import utilite.Rect
-import utilite.Vector
+import utility.Rect
+import utility.Vector
 import java.awt.Graphics
 import java.awt.Image
 

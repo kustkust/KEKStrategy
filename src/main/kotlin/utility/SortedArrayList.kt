@@ -1,4 +1,4 @@
-package utilite// стырено с https://gist.github.com/MarcinMoskala/4726b588d2bdad98d04d9ba879cb33ce#file-sortedarraylist-kt
+package utility// стырено с https://gist.github.com/MarcinMoskala/4726b588d2bdad98d04d9ba879cb33ce#file-sortedarraylist-kt
 
 class SortedArrayList<T>(
     capacity: Int,

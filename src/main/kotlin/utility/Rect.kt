@@ -1,4 +1,4 @@
-package utilite
+package utility
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor

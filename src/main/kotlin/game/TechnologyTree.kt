@@ -1,16 +1,27 @@
 package game
 
-import utilite.IRect
-import utilite.Rect
-import utilite.Vector
-import utilite.drawLine
-import utilite.drawMultiString
-import utilite.fillRect
-import utilite.pos
+import game.entities.PlayerBase
+import utility.*
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.MouseEvent
 import java.lang.Integer.max
+import kotlin.collections.List
+import kotlin.collections.all
+import kotlin.collections.arrayListOf
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.forEach
+import kotlin.collections.getValue
+import kotlin.collections.isNotEmpty
+import kotlin.collections.iterator
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.maxOf
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.plusAssign
+import kotlin.collections.set
 
 class TechnologyTree(val owner: Player) {
     class Technology(
@@ -93,10 +104,10 @@ class TechnologyTree(val owner: Player) {
 
     operator fun get(name: String) = technologies[name]
 
-    val bgRect = Rect()
+    private val bgRect = Rect()
 
-    val startTechnologies = mutableListOf<Technology>()
-    val technologies = mutableMapOf<String, Technology>()
+    private val startTechnologies = mutableListOf<Technology>()
+    private val technologies = mutableMapOf<String, Technology>()
 
     init {
         addTech(
@@ -106,22 +117,34 @@ class TechnologyTree(val owner: Player) {
         )
         addTech(
             "MineTech",
-            mutableMapOf(ResourceType.Gold to 20),
+            makeCost(ResourceType.Gold to 20),
             false,
-            listOf(technologies.getValue("BaseTech"))
+            listOf("BaseTech")
         )
         addTech(
-            "SawWill",
-            mutableMapOf(ResourceType.Gold to 20),
+            "SawmillTech",
+            makeCost(ResourceType.Gold to 20),
             false,
-            listOf(technologies.getValue("BaseTech"))
+            listOf("BaseTech")
         )
         addTech(
-            "game.entities.MeleeUnit",
-            mutableMapOf(ResourceType.Gold to 20),
+            "MeleeUnit",
+            makeCost(ResourceType.Gold to 20),
             false,
-            listOf(technologies.getValue("MineTech"))
+            listOf("MineTech")
         )
+        addTech(
+            "WallTech",
+            makeCost(ResourceType.Gold to 20),
+            false,
+            listOf("MineTech")
+        )
+        addTech(
+            "BuildRadius10",
+            makeCost(ResourceType.Gold to 30),
+            false,
+            listOf("SawmillTech", "MineTech")
+        ) {owner.getEntitiesOf<PlayerBase>().forEach { it.maxBuildDistance += 10 }}
         place()
     }
 
@@ -131,20 +154,21 @@ class TechnologyTree(val owner: Player) {
         name: String,
         cost: Cost,
         isOpen: Boolean,
-        requiredTech: List<Technology> = listOf(),
+        requiredTech: List<String> = listOf(),
         effect: (Player) -> Unit = {},
     ) = addTech(Technology(name, cost, isOpen, effect), requiredTech)
 
-    private fun addTech(newTech: Technology, requiredTech: List<Technology> = listOf()) {
+    private fun addTech(newTech: Technology, requiredTech: List<String> = listOf()) {
         technologies[newTech.name] = newTech
         if (requiredTech.isEmpty()) {
             startTechnologies += newTech
             newTech.order = 0
         } else {
-            newTech.requiredTech = requiredTech
-            newTech.order = requiredTech.maxOf { it.order } + 1
+            val rt = requiredTech.map { technologies.getValue(it) }
+            newTech.requiredTech = rt
+            newTech.order = rt.maxOf { it.order } + 1
             maxOrder = max(maxOrder, newTech.order)
-            requiredTech.forEach { it.unlockableTech += newTech }
+            rt.forEach { it.unlockableTech += newTech }
         }
     }
 

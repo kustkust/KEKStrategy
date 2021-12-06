@@ -1,10 +1,8 @@
 package game.entities
 
-import utilite.Vector
-import graphics.Animation
 import game.*
-import utilite.epsNei
-import utilite.*
+import graphics.Animation
+import utility.*
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -58,7 +56,7 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     open val paintPos: Vector
         get() = (pos - G.map.cellTranslation) * G.map.cs
 
-    lateinit var animation: Animation
+    var animation = G.animationManager.getAnimation(factory.entityName, owner.color)
 
     /**
      * Рисует сущность на карте
@@ -83,7 +81,8 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     /**
      * Вызывается в конце хода владельца, возвращает истину, если сущность что то сделала
      */
-    open fun endTurn() = false
+    open fun endTurn() =
+        false
 
     /**
      * Проверяет себя, например жива ли сущность и если нет, то удаляется
@@ -93,17 +92,19 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     /**
      * Обработка нажатий клавиш мыши
      */
-    abstract fun mouseClicked(ev: MouseEvent)
+    open fun mouseClicked(ev: MouseEvent) {}
+
+    open fun mousePressed(ev: MouseEvent) {}
 
     /**
      * Обработка движений мыши
      */
-    abstract fun mouseMoved(ev: MouseEvent)
+    open fun mouseMoved(ev: MouseEvent) {}
 
     /**
      * Обработка нажатий клавиш клавиатуры
      */
-    abstract fun keyClicked(ev: KeyEvent)
+    open fun keyClicked(ev: KeyEvent) {}
 
     /**
      * Радиус, который видит сущность, расстояние по умолчанию считается как x+y
@@ -136,12 +137,12 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     /**
      * Клетки на которых может находиться сущность
      */
-    abstract val allowedCells: MutableList<Cell.Type>
+    open val allowedCells: MutableList<Cell.Type> get() = factory.allowedCells
 
     /**
      * Стоимость сущности
      */
-    abstract val cost: Cost
+    open val cost: Cost get() = factory.cost
 
     /**
      * Фабрика для данной сущности

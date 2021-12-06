@@ -1,7 +1,12 @@
 package game
 
+import game.entities.Barracks
 import game.entities.BaseEntity
-import utilite.*
+import game.entities.MeleeUnit
+import game.entities.PlayerBase
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import utility.*
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics
@@ -11,10 +16,12 @@ import java.awt.event.KeyEvent.*
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
+import kotlin.math.min
 import kotlin.math.round
 import kotlin.random.Random
 
-class GameMap(width_: Int = 20, height_: Int = 20) {
+//@Serializable
+class GameMap {
     var width: Int
         get() = cells.width
         set(value) = cells.changeMatrixSize(value, cells.height) { x, y -> Cell(Vector(x, y), Cell.Type.Water) }
@@ -32,18 +39,29 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
     /**
      * Клетки карты
      */
-    private var cells = makeMatrix(Vector(width_, height_)) { pos -> Cell(pos) }
+    private lateinit var cells: Matrix<Cell>
 
     var cellTranslation = Vector(0, 0)
+        set(newT) {
+            if (newT.x < 0) newT.x = 0
+            else if (newT.x + winSizeInCells.x > width) newT.x = width - winSizeInCells.x
+            if (newT.y < 0) newT.y = 0
+            else if (newT.y + winSizeInCells.y > height) newT.y = height - winSizeInCells.y
+
+            selectedCellPos += newT - field
+            field = newT
+        }
 
     /**
      * Размер одной клетки в пикселях
      */
+    @Transient
     val cs = 32
 
     /**
      * Текстура для рисования тумана войны
      */
+    @Transient
     val shadow = BufferedImage(cs, cs, TYPE_INT_ARGB).apply {
         val g = graphics
         g.color = Color(0, 0, 0, 0)
@@ -61,16 +79,34 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
     operator fun get(pos: Vector) = cells[pos.x][pos.y]
     operator fun get(x: Int, y: Int) = cells[x][y]
 
+    fun getCell(x: Int, y: Int) = if (inMap(Vector(x, y))) get(x, y) else null
+    fun getCell(pos: Vector) = if (inMap(pos)) get(pos) else null
+
+    fun upOf(pos: Vector) = getCell(pos + Vector.Up)
+    fun downOf(pos: Vector) = getCell(pos + Vector.Down)
+    fun leftOf(pos: Vector) = getCell(pos + Vector.Left)
+    fun rightOf(pos: Vector) = getCell(pos + Vector.Right)
+
+    @Transient
     var fogOfWar = true
+
+    @Transient
+    var showGrid = true
 
     fun getTranslatedForDraw(p: Vector) = (p - cellTranslation) * cs
     fun getTranslatedForDraw(x: Int, y: Int) = getTranslatedForDraw(Vector(x, y))
 
-    val winSizeInCells
+    private val winSizeInCells
         get() = Vector(
-            (G.win.innerSize.x + cs - 1) / cs,
-            (G.win.innerSize.y + cs - 1) / cs
+            min((G.win.innerSize.x + cs - 1) / cs, width),
+            min((G.win.innerSize.y + cs - 1) / cs, height)
         )
+
+    private fun setAnimation() {
+        cells.matrixForEachIndexed { _, c ->
+            c.setAnimation()
+        }
+    }
 
     fun paint(g: Graphics) {
         //Рисуем клетки
@@ -95,12 +131,14 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         }
 
         //Рисуем сетку
-        g.color = Color(128, 128, 128, 128)
-        for (i in 0..height) {
-            g.drawLine(0, i * cs, width * cs, i * cs)
-        }
-        for (i in 0..width) {
-            g.drawLine(i * cs, 0, i * cs, height * cs)
+        if (showGrid) {
+            g.color = Color(128, 128, 128, 128)
+            for (i in 0..height) {
+                g.drawLine(0, i * cs, width * cs, i * cs)
+            }
+            for (i in 0..width) {
+                g.drawLine(i * cs, 0, i * cs, height * cs)
+            }
         }
 
         //Рисуем здания
@@ -114,7 +152,7 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
 
         //Рисуем маршруты
         G.curPlayer.selectedUnit?.let { unit ->
-            g.color = Color.black
+            g.color = Color.gray
             val g2 = g as Graphics2D
             val bs = g2.stroke
             g2.stroke = BasicStroke(3f)
@@ -150,6 +188,26 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         }
     }
 
+    /**
+     * Рисует заданный маршрут
+     * @param g рисовалка
+     * @param cur_ позиция откудова надо начинать рисовать
+     * @param path путь, который надо нарисовать
+     */
+    private fun drawPath(g: Graphics, cur_: Vector, path: MutableList<Direction>) {
+        var cur = getTranslatedForDraw(cur_)
+        val lx = IntArray(path.size + 1) { 0 }
+        lx[0] = cur.x + cs / 2
+        val ly = IntArray(path.size + 1) { 0 }
+        ly[0] = cur.y + cs / 2
+        path.forEachIndexed { i, dir ->
+            cur += dir.offset * cs
+            lx[i + 1] += cur.x + cs / 2
+            ly[i + 1] += cur.y + cs / 2
+        }
+        g.drawPolyline(lx, ly, lx.size)
+    }
+
     fun mouseMoved(ev: MouseEvent) {
         val tmp = ev.pos / cs + cellTranslation
         if (inMap(tmp)) {
@@ -161,6 +219,7 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
     fun keyClicked(ev: KeyEvent) {
         when (ev.keyCode) {
             VK_F -> fogOfWar = !fogOfWar
+            VK_G -> showGrid = !showGrid
         }
     }
 
@@ -176,22 +235,20 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
             VK_D -> Direction.Right.offset
             else -> Vector()
         }
-        val tmp = cellTranslation + d
-        if (inMap(tmp) && inMap(tmp + winSizeInCells)) {
-            selectedCellPos += d
-            cellTranslation = tmp
-        }
+        cellTranslation += d
     }
 
     /**
      * Истина, если после последнего движения мыши изменилась выбранная клетка
      */
+    @Transient
     var selectedCellChanged: Boolean = false
         private set
 
     /**
      * Позиция выбранной клетки карты
      */
+    @Transient
     var selectedCellPos: Vector = Vector(0, 0)
         private set
 
@@ -202,29 +259,12 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         get() = this[selectedCellPos]
 
     /**
-     * Рисует заданный маршрут
-     * @param g рисовалка
-     * @param cur_ позиция откудова надо начинать рисовать
-     * @param path путь, который надо нарисовать
-     */
-    fun drawPath(g: Graphics, cur_: Vector, path: MutableList<Direction>) {
-        var cur = getTranslatedForDraw(cur_)
-        val lx = IntArray(path.size + 1) { 0 }
-        lx[0] = cur.x + cs / 2
-        val ly = IntArray(path.size + 1) { 0 }
-        ly[0] = cur.y + cs / 2
-        path.forEachIndexed { i, dir ->
-            cur += dir.offset * cs
-            lx[i + 1] += cur.x + cs / 2
-            ly[i + 1] += cur.y + cs / 2
-        }
-        g.drawPolyline(lx, ly, lx.size)
-    }
-
-    /**
      * Проверяет, находится ли данная позиция внутри карты
      */
-    fun inMap(v: Vector) = v.x in 0 until width && v.y in 0 until height
+    fun inMap(v: Vector) =
+        v.x in 0 until width && v.y in 0 until height
+
+    operator fun contains(pos: Vector) = inMap(pos)
 
     fun centerOn(pos: Vector) {
         val p = pos - winSizeInCells / 2
@@ -232,13 +272,12 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         if (p.y < 0) p.y = 0
         if (p.x + winSizeInCells.x > size.x) p.x = p.x + winSizeInCells.x
         if (p.y + winSizeInCells.y > size.y) p.y = p.y + winSizeInCells.y
-        selectedCellPos += p - cellTranslation
         cellTranslation = p
     }
 
     fun centerOn(e: BaseEntity) = centerOn(e.pos)
 
-    operator fun contains(pos: Vector) = inMap(pos)
+    /*Алгоритм поиска пути*/
 
     /**
      * Флаги для алгоритма A*
@@ -260,7 +299,9 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         override fun equals(other: Any?) = this.pos == (other as AStarC).pos
     }
 
-    private val fCells = makeMatrix(size) { AStarC(AStarF.No, 0, 0, it) }
+    private val fCells: Matrix<AStarC> by lazy {
+        makeMatrix(size) { AStarC(AStarF.No, 0, 0, it) }
+    }
 
     /**
      * Ищет маршрут от начальной точки beg до конечной точки end, для определения
@@ -322,7 +363,47 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
         return path
     }
 
-    fun generateMapByTwoPoints(
+    /*Загрузка карты*/
+
+    fun initPLayers() {
+        val p1 = Vector(2, 2)
+        val p2 = Vector(width - 2, height - 2)
+
+        G.players = arrayOf(
+            Player("1").apply {
+                color = Color.red
+                PlayerBase(this, p1)
+                MeleeUnit(this, p1 + Vector.Down)
+                Barracks(this, p1 + Vector.Right)
+            },
+            Player("2").apply {
+                color = Color.orange
+                PlayerBase(this, p2)
+                MeleeUnit(this, p2 + Vector.Up)
+                Barracks(this, p2 + Vector.Left)
+            }
+        )
+    }
+
+    /*Генерация карты*/
+
+    fun generateMap(width_: Int, height_: Int) {
+        cells = makeMatrix(Vector(width_, height_)) { pos -> Cell(pos) }
+
+        val p1 = Vector(2, 2)
+        val p2 = Vector(width - 2, height - 2)
+
+        generateMapByTwoPoints(p1, 4, p2, 2, 1)
+        setAnimation()
+
+        initPLayers()
+    }
+
+    fun generateEmptyMap(width_: Int, height_: Int) {
+        cells = makeMatrix(Vector(width_, height_)) { pos -> Cell(pos) }
+    }
+
+    private fun generateMapByTwoPoints(
         p0: Vector,
         p0Power: Int,
         p1: Vector,
@@ -347,12 +428,6 @@ class GameMap(width_: Int = 20, height_: Int = 20) {
                     }
                 }
             }
-        }
-    }
-
-    fun setAnimation() {
-        cells.matrixForEachIndexed { _, c ->
-            c.setAnimation()
         }
     }
 }

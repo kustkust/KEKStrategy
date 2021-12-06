@@ -1,4 +1,4 @@
-package utilite
+package utility
 
 import kotlinx.serialization.Serializable
 import kotlin.math.absoluteValue
@@ -44,5 +44,17 @@ data class Vector(var x: Int, var y: Int) {
         var result = x
         result = 31 * result + y
         return result
+    }
+
+    companion object {
+        val Zero = Vector()
+        val Up = Vector(0, -1)
+        val Down = Vector(0, 1)
+        val Left = Vector(-1, 0)
+        val Right = Vector(1, 0)
+        val UpLeft = Vector(-1,-1)
+        val UpRight = Vector(1,-1)
+        val DownLeft = Vector(-1,1)
+        val DownRight = Vector(1,1)
     }
 }

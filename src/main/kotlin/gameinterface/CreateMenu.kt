@@ -1,10 +1,11 @@
 package gameinterface
 
-import game.entities.BaseFactory
 import game.G
 import game.Player
+import game.entities.BaseFactory
 import game.toString_
-import utilite.*
+import graphics.Animation
+import utility.*
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
@@ -17,9 +18,11 @@ class CreateMenu(private val entitiesList: ArrayList<BaseFactory>, var owner: Pl
 
     private val rowHeight = G.map.cs
     private val bounds = Rect(
-        rowHeight, rowHeight * 2,
+        rowHeight, rowHeight * 7,
         rowHeight * 5, rowHeight * entitiesList.size,
     )
+
+    private val animationPreviewCash = mutableMapOf<String, Animation>()
 
     fun unselect() {
         selectedIndex = -1
@@ -37,15 +40,12 @@ class CreateMenu(private val entitiesList: ArrayList<BaseFactory>, var owner: Pl
 
         g.color = owner.color
         entitiesList.forEach {
-            val gr = g.create(
-                p.x, p.y,
-                G.win.width, G.win.height
-            )
-            it.paintPreview(gr)
+            it.getPreview(owner.color).paint(g, p)
             if (!it.isOpen(owner)) {
-                gr.drawImage(G.map.shadow, 0, 0, null)
+                g.drawImage(G.map.shadow, p.x, p.y, null)
             }
-            gr.drawString(it.cost.toString_(), rowHeight, gr.fontMetrics.height)
+            g.color = if(owner.canPay(it.cost)) Color.black else Color.red
+            g.drawString(it.cost.toString_(), p.x + rowHeight, p.y + g.fontMetrics.height)
             p.y += rowHeight
         }
         if (selectedIndex != -1) {
@@ -59,7 +59,7 @@ class CreateMenu(private val entitiesList: ArrayList<BaseFactory>, var owner: Pl
 
     fun mouseClicked(ev: MouseEvent) {
         if (ev.pos in bounds) {
-            val tmp  = (ev.y - bounds.pos.y) / rowHeight % entitiesList.size
+            val tmp = (ev.y - bounds.pos.y) / rowHeight % entitiesList.size
             if (entitiesList[tmp].isOpen(owner)) {
                 selectedIndex = tmp
             }

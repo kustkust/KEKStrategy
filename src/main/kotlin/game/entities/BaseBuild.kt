@@ -1,10 +1,15 @@
 package game.entities
 
 import game.Player
-import utilite.Vector
+import utility.Vector
 
-abstract class BaseBuild(owner: Player, pos: Vector = Vector(0, 0)) :
-    BaseEntity(owner, pos) {
+abstract class BaseBuild(owner_: Player, pos_: Vector) :
+    BaseEntity(owner_, pos_) {
+
+    init {
+        owner.addBuild(this)
+    }
+
     override fun selfCheck(from: BaseEntity?) {
         if (curHp <= 0) {
             owner.removeBuild(this)

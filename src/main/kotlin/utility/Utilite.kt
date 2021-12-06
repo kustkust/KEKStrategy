@@ -1,5 +1,6 @@
-package utilite
+package utility
 
+import game.Cell
 import java.awt.Graphics
 import java.awt.Polygon
 import java.awt.event.MouseEvent
@@ -115,6 +116,16 @@ val MouseEvent.pos
 fun makePolygon(vararg points: Vector) =
     Polygon(points.map { it.x }.toIntArray(), points.map { it.y }.toIntArray(), points.size)
 
+fun <T,R> Iterable<T>.filterMap(pred: (T)->Boolean, transform: (T) -> R) : List<R> {
+    val ar = ArrayList<R>()
+    forEach {
+        if (pred(it)) {
+            ar.add(transform(it))
+        }
+    }
+    return ar
+}
+
 fun <T> MutableList<T>.copy() = ArrayList<T>(this)
 
 val java.awt.Point.toVector
@@ -178,3 +189,41 @@ fun Graphics.drawMultiString(str: String, pos: Vector) {
         drawString(it, p)
     }
 }
+
+
+
+val Map<Cell.CellDir, Boolean>.uls: String
+    get() {
+        var tmp = "UL"
+        if (getValue(Cell.CellDir.UpLeft)) tmp += 'C'
+        if (getValue(Cell.CellDir.Up)) tmp += 'U'
+        if (getValue(Cell.CellDir.Left)) tmp += 'L'
+        return tmp
+    }
+
+val Map<Cell.CellDir, Boolean>.urs: String
+    get() {
+        var tmp = "UR"
+        if (getValue(Cell.CellDir.UpRight)) tmp += 'C'
+        if (getValue(Cell.CellDir.Up)) tmp += 'U'
+        if (getValue(Cell.CellDir.Right)) tmp += 'R'
+        return tmp
+    }
+
+val Map<Cell.CellDir, Boolean>.dls: String
+    get() {
+        var tmp = "DL"
+        if (getValue(Cell.CellDir.DownLeft)) tmp += 'C'
+        if (getValue(Cell.CellDir.Down)) tmp += 'D'
+        if (getValue(Cell.CellDir.Left)) tmp += 'L'
+        return tmp
+    }
+
+val Map<Cell.CellDir, Boolean>.drs: String
+    get() {
+        var tmp = "DR"
+        if (getValue(Cell.CellDir.DownRight)) tmp += 'C'
+        if (getValue(Cell.CellDir.Down)) tmp += 'D'
+        if (getValue(Cell.CellDir.Right)) tmp += 'R'
+        return tmp
+    }

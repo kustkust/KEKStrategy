@@ -11,7 +11,7 @@ class ImagePanel(path:String) : JPanel() {
     private var image: BufferedImage? = null
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
-        g.drawImage(image, 0, 0, this) // see javadoc for more info on the parameters
+        g.drawImage(image, 0, 0, this)
     }
 
     init {

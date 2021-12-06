@@ -1,4 +1,4 @@
-package utilite
+package utility
 
 interface IRect {
     operator fun contains(p: Vector) =

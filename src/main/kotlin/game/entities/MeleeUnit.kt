@@ -1,8 +1,8 @@
 package game.entities
 
-import utilite.Vector
-import graphics.Animation
+import utility.Vector
 import game.*
+import graphics.Animation
 import java.awt.Color
 import java.awt.Graphics
 import kotlin.math.absoluteValue
@@ -13,9 +13,6 @@ class MeleeUnit(owner: Player, pos: Vector = Vector()) : BaseUnit(owner, pos) {
     override val cost: Cost
         get() = Factory.cost
     override val factory get() = Factory
-    init {
-        animation = G.animationManager.getAnimation("Sprite-0001", owner.color)
-    }
 
     var damage = Factory.baseDamage
 
@@ -50,34 +47,23 @@ class MeleeUnit(owner: Player, pos: Vector = Vector()) : BaseUnit(owner, pos) {
 
     override fun canMoveTo(cell: Cell) = cell.type in allowedCells &&
             cell.unit == null &&
-            (cell.build == null || owner own cell.build)
+            (cell.build == null || owner own cell.build) &&
+            cell.build !is Wall
 
     override fun paint(g: Graphics) {
         super.paint(g)
         val cs = G.map.cs
         val p = paintPos
-        /*g.color = owner.color
-        g.fillPolygon(
-            intArrayOf(p.x + cs / 2, p.x + 2, p.x + cs - 2),
-            intArrayOf(p.y + 2, p.y + cs - 2, p.y + cs - 2),
-            3
-        )*/
-        g.color = Color.BLACK
+        g.color = Color.black
         g.drawString(curHp.toString(), p.x + 1, p.y + g.font.size)
         g.drawString(remMovePoints.toString(), p.x + 1, p.y + cs - 1)
     }
 
     object Factory : BaseFactory {
         override fun createEntity(owner: Player, pos: Vector) = MeleeUnit(owner, pos)
-        override fun paintPreview(g: Graphics) {
-            val cs = G.map.cs
-            g.fillPolygon(
-                intArrayOf(cs / 2, 2, cs - 2),
-                intArrayOf(2, cs - 2, cs - 2),
-                3
-            )
-        }
+        override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
+        override val entityName = MeleeUnit::class.simpleName?:""
         val maxLVL = 3
 
         val baseDamage = 3

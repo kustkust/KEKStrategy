@@ -3,45 +3,48 @@ package game.entities
 import game.*
 import gameinterface.CreateMenu
 import graphics.Animation
-import utilite.*
+import utility.Vector
+import utility.get
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 
-class PlayerBase(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, pos) {
-    override var allowedCells = mutableListOf(Cell.Type.Ground)
-    override val cost: Cost = mapOf()
+class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
     override val factory get() = Factory
 
-    private val maxBuildDistance = 5
+    var maxBuildDistance = 10
 
-    init {
-        animation = G.animationManager.getAnimation("PlayerBase", owner.color)
-    }
+    private val selectedBuild get() = buildMenu.selected
+
+    private val buildsList = arrayListOf(
+        Barracks.Factory,
+        Mine.Factory,
+        Wall.Factory,
+        Gate.Factory,
+        Sawmill.Factory,
+    )
+
+    private val buildMenu = CreateMenu(buildsList, owner_)
 
     override fun paint(g: Graphics) {
         g.color = owner.color
         val p = paintPos
-        //g.fillRect(p.x + 2, p.y + 2, G.map.cs - 4, G.map.cs - 4)
         super.paint(g)
         g.color = Color.BLACK
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
 
-        if (selectedBuild != null && owner.selectedBuild == this) {
-            val onMapPos = G.map.selectedCellPos
-            val mPos = (onMapPos - G.map.cellTranslation) * G.map.cs
-            val gr = g.create(
-                mPos.x, mPos.y,
-                G.win.width, G.win.height
-            )
-            gr.color = Color(owner.color.red, owner.color.green, owner.color.blue, 128)
-            selectedBuild!!.paintPreview(gr)
-            gr.color = if (canBuildOn(onMapPos) && owner.canPay(selectedBuild!!.cost))
-                Color.BLACK
-            else
-                Color.RED
-            gr.drawRect(0, 0, G.map.cs, G.map.cs)
+        if(selected && !owner.isTechOpen){
+            selectedBuild?.let { selectedBuild ->
+                val onMapPos = G.map.selectedCellPos
+                val mPos = (onMapPos - G.map.cellTranslation) * G.map.cs
+                selectedBuild.getPreview(owner.color).paint(g, mPos)
+                g.color = if (canBuildOn(onMapPos) && owner.canPay(selectedBuild.cost))
+                    Color.BLACK
+                else
+                    Color.RED
+                g.drawRect(mPos.x, mPos.y, G.map.cs, G.map.cs)
+            }
         }
     }
 
@@ -71,7 +74,8 @@ class PlayerBase(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, p
                     if (canBuildOn(p) &&
                         owner.pay(selectedBuild.cost)
                     ) {
-                        owner.addBuild(selectedBuild.createEntity(owner, p) as BaseBuild)
+                        //owner.addBuild(selectedBuild.createEntity(owner, p) as BaseBuild)
+                        selectedBuild.createEntity(owner,p)
                     }
                 MouseEvent.BUTTON3 ->
                     buildMenu.unselect()
@@ -79,12 +83,8 @@ class PlayerBase(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, p
         }
     }
 
-    override fun mouseMoved(ev: MouseEvent) {
-
-    }
-
     override fun keyClicked(ev: KeyEvent) {
-        if (owner.selectedBuild == this) {
+        if (selected) {
             buildMenu.keyClicked(ev)
         }
     }
@@ -97,19 +97,14 @@ class PlayerBase(owner: Player, pos: Vector = Vector(0, 0)) : BaseBuild(owner, p
         }
     }
 
-    private val selectedBuild get() = buildMenu.selected
-    private val buildsList = arrayListOf(Barracks.Factory, Mine.Factory)
-    private val buildMenu = CreateMenu(buildsList, owner)
-
     object Factory : BaseFactory {
         override fun createEntity(owner: Player, pos: Vector): BaseEntity = PlayerBase(owner, pos)
-        override fun paintPreview(g: Graphics) {
-            g.fillRect(2, 2, G.map.cs - 4, G.map.cs - 4)
-        }
+        override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override val cost: Map<ResourceType, Int> = mapOf()
+        override val cost: Map<ResourceType, Int> = makeCost()
+        override val entityName = PlayerBase::class.simpleName ?: ""
         override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Ground)
-        override val maxHP: Int = 10
+        override val maxHP: Int = 50
         override val requiredTechnology: String? = null
     }
 }

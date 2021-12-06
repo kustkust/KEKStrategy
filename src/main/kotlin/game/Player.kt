@@ -3,11 +3,9 @@ package game
 import game.entities.BaseBuild
 import game.entities.BaseEntity
 import game.entities.BaseUnit
-import utilite.*
-import java.awt.BasicStroke
+import utility.*
 import java.awt.Color
 import java.awt.Graphics
-import java.awt.Graphics2D
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_Q
 import java.awt.event.KeyEvent.VK_T
@@ -16,49 +14,18 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseEvent.BUTTON3
 
 class Player(val name: String) {
+    var isLoose = false
+
     /**
      * Список юнитов, принадлежащих игроку
      */
-    val units = mutableListOf<BaseUnit>()
+    private val units = mutableListOf<BaseUnit>()
 
-    var isLoose = false
 
     /**
      * Список зданий, принадлежащих игроку
      */
-    val builds = mutableListOf<BaseBuild>()
-
-    /**
-     * Список сущностей, принадлежащих игроку, объединяет список юнитов и зданий
-     */
-    val entities: List<BaseEntity>
-        get() = List(units.size + builds.size) {
-            if (it < units.size) {
-                units[it]
-            } else {
-                builds[it - units.size]
-            }
-        }
-
-    var isTechOpen = false
-    val technologies = TechnologyTree(this)
-
-    /**
-     * Возвращает список всех сущностей указанного типа
-     */
-    inline fun <reified T> getEntitiesOf() =
-        entities.filter { b -> b is T }.map { it as T }
-
-    /**
-     * Ресурсы игрока
-     */
-    val resource = mutableMapOf<ResourceType, Int>().apply {
-        ResourceType.values().forEach { this[it] = 10 }
-    }
-
-    fun changeResource(r: ResourceType, value: Int) {
-        resource[r] = resource[r]!! + value
-    }
+    private val builds = mutableListOf<BaseBuild>()
 
     /**
      * Выбранный юнит. Если выбран не юнит или выбрано здание, то возвращает null
@@ -81,10 +48,47 @@ class Player(val name: String) {
     var selectedEntity: BaseEntity? = if (entities.isNotEmpty()) entities[0] else null
 
     /**
+     * Список сущностей, принадлежащих игроку, объединяет список юнитов и зданий
+     */
+    val entities: List<BaseEntity>
+        get() = List(units.size + builds.size) {
+            if (it < units.size) {
+                units[it]
+            } else {
+                builds[it - units.size]
+            }
+        }
+
+    /**
+     * Возвращает список всех сущностей указанного типа
+     */
+    inline fun <reified T> getEntitiesOf() =
+        entities.filter { b -> b is T }.map { it as T }
+
+    var tmpPath: MutableList<Direction>? = null
+
+    var isTechOpen = false
+    val technologies = TechnologyTree(this)
+
+    /**
+     * Ресурсы игрока
+     */
+    val resource = mutableMapOf<ResourceType, Int>().apply {
+        ResourceType.values().forEach { this[it] = 500 }
+    }
+
+    fun changeResource(r: ResourceType, value: Int) {
+        resource[r] = resource[r]!! + value
+    }
+
+    /**
      * Цвет игрока, отражается на юнитах и зданиях
      */
     var color: Color = Color.RED
 
+    fun mousePressed(ev: MouseEvent) {
+
+    }
     /**
      * Обработка нажатий клавиш мыши
      */
@@ -134,8 +138,6 @@ class Player(val name: String) {
         }
         selectedEntity?.keyClicked(ev)
     }
-
-    var tmpPath: MutableList<Direction>? = null
 
     fun paint(g: Graphics) {
         if (isTechOpen) {

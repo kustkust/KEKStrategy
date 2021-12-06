@@ -1,13 +1,10 @@
 package game
 
-import game.entities.Barracks
-import game.entities.MeleeUnit
 import game.entities.PlayerBase
 import gameinterface.MainWindow
 import graphics.AnimationManager
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import utilite.Vector
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
@@ -15,6 +12,7 @@ import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.sound.sampled.AudioSystem
+import kotlin.math.round
 
 object G {
     /**
@@ -28,22 +26,17 @@ object G {
         Play,
         Win,
     }
-    enum class MusicState {
-        on,
-        off
-    }
+
+    var state = State.Menu
 
     val animationManager = AnimationManager()
 
-    var selectedCellType = Cell.Type.Water
-
-    var state = State.Menu
-    var musicState = MusicState.on
+    private var selectedCellType = Cell.Type.Water
 
     /**
      * Список игроков
      */
-    private lateinit var players: Array<Player>
+    lateinit var players: Array<Player>
 
     /**
      * Номер текущего игрока
@@ -57,56 +50,43 @@ object G {
         get() = players[curPlayerId]
 
     /**
-     * Костыль, другие методы могут добавить сюда метод отрисовки чего либо, но
-     * отрисовано оно будет лишь раз, так как после каждой отрисовки список отчищается.
-     * Наверное стоит убрать
+     * Основное окно в котором происходит вся отрисовка
      */
-    val drawTask = mutableListOf<(Graphics) -> Unit>()
+    lateinit var win: MainWindow
 
+    var selectedMapId = -1
 
+    /*Игровая логика*/
 
-    init {
-        startGame()
-        animationManager.start()
-
-    }
+    var tmp: BufferedImage? = null
 
     fun startGame() {
-        state = State.Menu
         curPlayerId = 0
 
-
-        map = GameMap(100, 100)
-        map.generateMapByTwoPoints(
-            Vector(2, 2),
-            4,
-            Vector(95, 95),
-            2,
-            1
-        )
-        map.fogOfWar = true
-        map.setAnimation()
-        players = arrayOf(
-            Player("1").apply {
-                color = Color.RED
-                addUnit(MeleeUnit(this, Vector(10, 10)))
-                addBuild(PlayerBase(this, Vector(7, 7)))
-                addBuild(Barracks(this, Vector(8, 7)))
-            },
-            Player("2").apply {
-                color = Color.ORANGE
-                addUnit(MeleeUnit(this, Vector(10, 11)))
-                addBuild(PlayerBase(this, Vector(13, 13)))
-                addBuild(Barracks(this, Vector(12, 13)))
-            }
-        )
-        /*for (x in 3..15) {
-            for (y in 7..15) {
-                map[x, y].type = game.Cell.Type.Ground
-            }
+        if (selectedMapId == -1) {
+            map = GameMap()
+            map.generateMap(40, 20)
+        } else {
+            val s = File("${Paths.maps}/$selectedMapId.json").bufferedReader().readText()
+            map = Json.decodeFromString(s)
+            map.initPLayers()
         }
-        map[6,7].type = game.Cell.Type.Mountain*/
+        animationManager.start()
         curPlayer.newTurn()
+        state = State.Play
+    }
+
+    private fun endTurn() {
+        if (!curPlayer.endTurn()) {
+            do {
+                curPlayerId++
+                curPlayerId %= players.size
+            } while (curPlayer.isLoose)
+            map.centerOn(
+                curPlayer.selectedEntity ?: curPlayer.getEntitiesOf<PlayerBase>()[0]
+            )
+            curPlayer.newTurn()
+        }
     }
 
     fun checkWin() {
@@ -115,6 +95,8 @@ object G {
         }
     }
 
+    /*Отрисовка*/
+
     /**
      * Рисует игру
      */
@@ -122,6 +104,7 @@ object G {
         when (state) {
             State.Play -> {
                 paintGame(g)
+                //g.drawImage(tmp,0,0,null)
             }
             State.Win -> {
                 win.menu.showWinner(curPlayer.name, curPlayer.color)
@@ -134,7 +117,7 @@ object G {
                 g.fillRect(2, 2, map.cs, map.cs)
                 g.color = Color(g.color.red, g.color.green, g.color.blue, 128)
                 g.color = Color.red
-                g.drawString("${win.isLeftButtonDown}", 10,10)
+                g.drawString("${win.isLeftButtonDown}", 10, 10)
             }
             else -> {
 
@@ -152,30 +135,17 @@ object G {
             0,
             g.font.size
         )
-
-        drawTask.forEach { it(g) }
-        drawTask.clear()
-
+        g.drawString(
+            "${round(1000f / if (animationManager.delta == 0L) 1 else animationManager.delta).toInt()}fps",
+            win.innerSize.x - 50,
+            g.font.size
+        )
     }
 
-    val MenuMusic = AudioSystem.getAudioInputStream(File("src/main/resources/Music/Adding-the-Sun.wav"))
-    val GameMusic = AudioSystem.getAudioInputStream(File("src/main/resources/Music/Pleasant-Porridge.wav"))
-    val MenuMusicClip = AudioSystem.getClip()
-    val GameMusicClip = AudioSystem.getClip()
+    /*Управление*/
 
-    fun PlayMusic(){
-        MenuMusicClip.stop()
-        GameMusicClip.stop()
-        if(musicState == MusicState.on){
-            if(state == State.Menu){
-                MenuMusicClip.framePosition = 0
-                MenuMusicClip.start()
-            }
-            else{
-                GameMusicClip.framePosition = 0
-                GameMusicClip.start()
-            }
-        }
+    fun mousePressed(ev: MouseEvent) {
+
     }
 
     /**
@@ -184,7 +154,6 @@ object G {
     fun mouseClicked(ev: MouseEvent) {
         when (state) {
             State.Play -> {
-                //val posInMapCord = utilite.getPos/map.cs
                 curPlayer.mouseClicked(ev)
             }
             State.EditMap -> {
@@ -207,7 +176,7 @@ object G {
             }
             State.EditMap -> {
                 map.mouseMoved(ev)
-                if(win.isLeftButtonDown) {
+                if (win.isLeftButtonDown) {
                     map.selectedCell.type = selectedCellType
                 }
             }
@@ -246,20 +215,6 @@ object G {
         }
     }
 
-    fun endTurn() {
-        if (!curPlayer.endTurn()) {
-            do {
-                curPlayerId++
-                curPlayerId %= players.size
-            } while (curPlayer.isLoose)
-            map.centerOn(
-                curPlayer.selectedEntity ?:
-                curPlayer.getEntitiesOf<PlayerBase>()[0]
-            )
-            curPlayer.newTurn()
-        }
-    }
-
     fun keyPressed(ev: KeyEvent) {
         when (state) {
             State.Play -> {
@@ -274,32 +229,40 @@ object G {
         }
     }
 
-    /**
-     * Основное окно в котором происходит вся отрисовка
-     */
-    lateinit var win: MainWindow
+    /*Музыка*/
 
-    @Serializable
-    class Simple(val s: String)
-
-    @Serializable
-    abstract class Parent
-
-    @Serializable
-    @SerialName("Sample")
-    data class Sample(val s: String) : Parent()
-
-    @Serializable
-    data class SampleTwo(val s: String) : Parent()
-
-    @Serializable
-    class Test {
-        var frames: List<Test1> = emptyList()
+    enum class MusicState {
+        On,
+        Off
     }
 
-    @Serializable
-    class Test1 {
-        var filename: String = ""
+    var musicState = MusicState.On
+
+    private val menuMusic = AudioSystem.getAudioInputStream(File("${Paths.music}/Adding-the-Sun.wav"))
+    private val gameMusic = AudioSystem.getAudioInputStream(File("${Paths.music}/Pleasant-Porridge.wav"))
+    private val menuMusicClip = AudioSystem.getClip()
+    private val gameMusicClip = AudioSystem.getClip()
+
+    fun playMusic() {
+        menuMusicClip.stop()
+        gameMusicClip.stop()
+        if (musicState == MusicState.On) {
+            if (state == State.Menu) {
+                menuMusicClip.framePosition = 0
+                menuMusicClip.start()
+            } else {
+                gameMusicClip.framePosition = 0
+                gameMusicClip.start()
+            }
+        }
+    }
+
+    object Paths {
+        const val resource = "./src/main/resources"
+        const val animation = "$resource/graphics/animations"
+        const val menu = "$resource/graphics/menuImages"
+        const val maps = "$resource/maps"
+        const val music = "$resource/music"
     }
 
     /**
@@ -307,27 +270,10 @@ object G {
      */
     @JvmStatic
     fun main(a: Array<String>) {
-        /*val s = File("""./src/main/resources/graphics/test2/animation.Sprite-0001.json""").
-        bufferedReader().readText()
-        val json = Json{
-            ignoreUnknownKeys = true
-        }
-        val j:JsonObject = json.decodeFromString(s)
-        val t: Test = json.decodeFromString(s)
-        println(t.frames[0].filename)
-        println(j["frames"]?.jsonArray?.utilite.get(0)?.jsonObject?.utilite.get("filename")?.toString())
-        readLine()*/
-
-        val c = Color(255,11,47,12)
-        val a = c.rgb shr 24 and 0xFF
-        val r = c.rgb shr 16 and 0xFF
-        val g = c.rgb shr 8  and 0xFF
-        val b = c.rgb shr 0 and 0xFF
-
         win = MainWindow()
 
-        GameMusicClip.open(GameMusic)
-        MenuMusicClip.open(MenuMusic)
-        PlayMusic()
+        gameMusicClip.open(gameMusic)
+        menuMusicClip.open(menuMusic)
+        playMusic()
     }
 }

@@ -4,19 +4,23 @@ import game.Cell
 import game.Direction
 import game.G
 import game.Player
-import utilite.Vector
+import utility.Vector
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON3
 import javax.swing.Timer
 
-abstract class BaseUnit(owner: Player, pos_: Vector = Vector(0, 0)) :
-    BaseEntity(owner, pos_) {
-    var maxMovePoints = 1000
+abstract class BaseUnit(owner_: Player, pos_: Vector) :
+    BaseEntity(owner_, pos_) {
+    var maxMovePoints = 10
     var remMovePoints = maxMovePoints
     var maxAttackPerTurn = 1
     var attackRem = 1
     var path = mutableListOf<Direction>()
+
+    init {
+        owner.addUnit(this)
+    }
 
     abstract fun attack(entity: BaseEntity)
     abstract fun canAttack(entity: BaseEntity): Boolean
@@ -34,10 +38,6 @@ abstract class BaseUnit(owner: Player, pos_: Vector = Vector(0, 0)) :
             return true
         }
         return false
-    }
-
-    override fun mouseMoved(ev: MouseEvent) {
-
     }
 
     var isMoving = false
@@ -151,10 +151,6 @@ abstract class BaseUnit(owner: Player, pos_: Vector = Vector(0, 0)) :
         if (ev.clickCount == 2) {
             animatedFinishMove()
         }
-    }
-
-    override fun keyClicked(ev: KeyEvent) {
-        //TO DO("Not yet implemented")
     }
 
     val curDist: Vector

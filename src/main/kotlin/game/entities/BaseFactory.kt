@@ -2,9 +2,11 @@ package game.entities
 
 import game.Cell
 import game.Cost
+import game.G
 import game.Player
-import utilite.Vector
-import java.awt.Graphics
+import graphics.Animation
+import utility.Vector
+import java.awt.Color
 
 /**
  * Базовый класс для создания сущностей. Так же содержит некоторую общую информацию
@@ -18,15 +20,25 @@ interface BaseFactory {
      */
     fun createEntity(owner: Player, pos: Vector): BaseEntity
 
+    val animationPreviewCash: MutableMap<Color, Animation>
+
     /**
      * Рисует превью сущности для меню, к примеру меню создания юнитов
      */
-    fun paintPreview(g: Graphics)
+    fun getPreview(color: Color) =
+        animationPreviewCash.getOrPut(color) {
+            val tmp = G.animationManager.getAnimation(entityName, color)
+            tmp.run = false
+            tmp
+        }
 
     /**
      * Возвращает стоимость создаваемого объекта
      */
     val cost: Cost
+
+
+    val entityName: String
 
     /**
      * Возвращает список типов клеток на которых может находиться сущность

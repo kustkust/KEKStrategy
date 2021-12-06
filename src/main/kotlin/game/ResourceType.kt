@@ -10,6 +10,8 @@ fun Cost.toString_(): String {
     return resStr
 }
 
+fun makeCost(vararg cost: Pair<ResourceType, Int>) = mapOf(*cost)
+
 enum class ResourceType {
     Gold,
     Tree,

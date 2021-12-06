@@ -1,6 +1,7 @@
 package gameinterface
 
 import game.G
+import game.GameMap
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
@@ -8,19 +9,11 @@ import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.io.File
-import javax.imageio.ImageIO
-import javax.sound.sampled.AudioInputStream
-import javax.sound.sampled.AudioSystem
 import javax.swing.*
 
-
-
 class GameMenu(winWidth: Int, winHeight: Int) {
-
-
     //во имя главного меню
-    val menuPanel = ImagePanel("./src/main/resources/graphics/menuImages/KekStratMenuPic.png")
+    val menuPanel = ImagePanel("${G.Paths.menu}/KekStratMenuPic.png")
     //private val menuLabel = JLabel("KEKStrategy")
 
     //#660800 dark red
@@ -34,7 +27,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
     private var muteButton = GameButton()
 
     //во имя окна выбора карты
-    val mapChoosePanel = ImagePanel("./src/main/resources/graphics/menuImages/KekStratMapChoosePic.png")
+    val mapChoosePanel = ImagePanel("${G.Paths.menu}/KekStratMapChoosePic.png")
 
     // private val mapChooseLabel = JLabel("Choose your map")
     private val mapChooseButtons = listOf(
@@ -53,12 +46,12 @@ class GameMenu(winWidth: Int, winHeight: Int) {
     )
 
     var muteButtonImg = listOf(
-        ImageIcon("src/main/resources/graphics/menuImages/Mute1.png"), // RedOn
-        ImageIcon("src/main/resources/graphics/menuImages/Mute2.png"), //1 DarkRedON
-        ImageIcon("src/main/resources/graphics/menuImages/Mute3.png"), //2 GrayOn
-        ImageIcon("src/main/resources/graphics/menuImages/Mute4.png"), //3 RedOff
-        ImageIcon("src/main/resources/graphics/menuImages/Mute5.png"),  //4 DarkRedOff
-        ImageIcon("src/main/resources/graphics/menuImages/Mute6.png"),  //4 GrayOff
+        ImageIcon("${G.Paths.menu}/Mute1.png"), // RedOn
+        ImageIcon("${G.Paths.menu}/Mute2.png"), //1 DarkRedON
+        ImageIcon("${G.Paths.menu}/Mute3.png"), //2 GrayOn
+        ImageIcon("${G.Paths.menu}/Mute4.png"), //3 RedOff
+        ImageIcon("${G.Paths.menu}/Mute5.png"),  //4 DarkRedOff
+        ImageIcon("${G.Paths.menu}/Mute6.png"),  //4 GrayOff
     )
 
     //во имя меню паузы
@@ -74,11 +67,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pack(winWidth, winHeight)
     }
 
-    //В девичестве FirstPaint (чем тоби FirstPaint не устроил, нормальное же название)
     private fun pack(winWidth: Int, winHeight: Int) {
-
-
-
         //Сборка панели главного меню
         menuPanel.layout = null
         menuPanel.preferredSize = Dimension(winWidth, winHeight)
@@ -96,8 +85,10 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         editMapButton.addMouseListener(object: MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 G.state = G.State.EditMap
+                G.map = GameMap()
                 G.map.fogOfWar = false
-                //game.G.mapNum = e.getActionCommand().toInt() Отправка номера выбранной карты
+                G.map.generateMap(20, 20)
+                G.animationManager.start()
                 menuPanel.isVisible = false
                 mapChoosePanel.isVisible = false
                 G.win.gamePanel.isVisible = true
@@ -113,7 +104,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         //Изменение иконки кнопки мута музыки в зависимости от состояния
         muteButton.addMouseListener(object: MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if(G.musicState == G.MusicState.On) {
                     muteButton.icon = muteButtonImg[1]
                 }else{
                     muteButton.icon = muteButtonImg[4]
@@ -121,7 +112,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
                 super.mouseEntered(e)
             }
             override fun mouseExited(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if(G.musicState == G.MusicState.On) {
                     muteButton.icon = muteButtonImg[0]
                 }else{
                     muteButton.icon = muteButtonImg[3]
@@ -130,7 +121,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
             }
 
             override fun mousePressed(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if(G.musicState == G.MusicState.On) {
                     muteButton.icon = muteButtonImg[2]
                 }else{
                     muteButton.icon = muteButtonImg[5]
@@ -138,7 +129,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
                 super.mousePressed(e)
             }
             override fun mouseReleased(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
+                if(G.musicState == G.MusicState.On) {
                     muteButton.icon = muteButtonImg[0]
                 }else{
                     muteButton.icon = muteButtonImg[3]
@@ -146,18 +137,17 @@ class GameMenu(winWidth: Int, winHeight: Int) {
                 super.mouseReleased(e)
             }
             override fun mouseClicked(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.on) {
-                    G.musicState = G.MusicState.off
+                if(G.musicState == G.MusicState.On) {
+                    G.musicState = G.MusicState.Off
                     muteButton.icon = muteButtonImg[4]
                 }else{
-                    G.musicState = G.MusicState.on
+                    G.musicState = G.MusicState.On
                     muteButton.icon = muteButtonImg[1]
                 }
-                G.PlayMusic()
+                G.playMusic()
                 super.mouseClicked(e)
             }
         })
-
 
         val actLis = ActionListener { e ->
             when (e.actionCommand) {
@@ -181,15 +171,15 @@ class GameMenu(winWidth: Int, winHeight: Int) {
                     G.win.gamePanel.isVisible = false
                     standardVisible()
                     G.startGame()
-                    G.PlayMusic()
+                    G.playMusic()
                 }
                 //Кнопачки меню выбора карт
                 else -> {
-                    G.state = G.State.Play
-                    //game.G.mapNum = e.getActionCommand().toInt() Отправка номера выбранной карты
+                    //G.selectedMapId = e.actionCommand.toInt()
+                    G.startGame()
                     mapChoosePanel.isVisible = false
                     G.win.gamePanel.isVisible = true
-                    G.PlayMusic()
+                    G.playMusic()
                 }
             }
         }
@@ -217,12 +207,9 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         mapText.isVisible = false
         mapChoosePanel.add(mapText)
 
-
         for ((index, mapButton) in mapChooseButtons.withIndex()) {
             mapButton.setBounds(winWidth / 50 + winWidth / 5 * index, winHeight / 2, winWidth / 6, winHeight / 6)
             mapButton.addActionListener(actLis)
-
-
 
             mapButton.addMouseListener(object: MouseAdapter() {
                 override fun mouseEntered(e: MouseEvent?) {
@@ -241,12 +228,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
             mapChoosePanel.add(mapButton)
         }
 
-
-       /* val mapName = JLabel()
-        val mapText = JTextPane()
-        val startButton = GameButton("<html><font color=\"#9a0c00 \">Start Game")
-        val mapList = JList<String>()*/
-/*
+        /*
 
         mapName.setBounds(winWidth / 2 + 30, winHeight / 2, winWidth / 2 - 30, 30)
         mapChoosePanel.add(mapName)
@@ -280,7 +262,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         }
         mapList.model = maps
         mapChoosePanel.add(mapList)
-*/
+        */
 
         //Сборка панели меню паузы
         pausePanel.layout = null
@@ -316,14 +298,13 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         mapChoosePanel.isVisible = false
         pausePanel.isVisible = false
 
-
         pauseLabel.text = "<html><font color=\"#9a0c00 \">Pause"
         continueButton.isVisible = true
     }
 
     fun showWinner(curPlID: String,curPlCol: Color){
         pauseLabel.foreground = curPlCol
-        pauseLabel.text = "Player " + curPlID + " Win"
+        pauseLabel.text = "Player $curPlID Win"
         continueButton.isVisible = false
         pausePanel.isVisible = true
     }

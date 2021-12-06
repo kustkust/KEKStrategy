@@ -1,6 +1,6 @@
 package game
 
-import utilite.Vector
+import utility.Vector
 
 enum class Direction {
     Up {
