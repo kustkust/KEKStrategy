@@ -5,41 +5,16 @@ import graphics.Animation
 import utility.Vector
 import java.awt.Color
 
-class Gate(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
+class Gate(owner_: Player, pos_: Vector) : BaseWall(owner_, pos_) {
     override val factory
         get() = Factory
 
-    init {
-        setupAnimation()
-        setupNeiAnimation()
-    }
-
-    private val BaseBuild.isWOrG
-        get() = this is Wall || this is Gate
-
-    fun setupAnimation() {
+    override fun setupAnimation() {
         animation.curTagName =
-            if (G.map.upOf(pos)?.build?.isWOrG == true ||
-                G.map.downOf(pos)?.build?.isWOrG == true
-            )
-                "UD"
-            else "LR"
-    }
-
-    fun setupNeiAnimation() {
-        val set = { d: Vector ->
-            val b = G.map.getCell(pos + d)?.build
-            if (b is Wall) {
-                b.setupAnimation()
-            }
-            if (b is Gate) {
-                b.setupAnimation()
-            }
-        }
-        set(Vector.Up)
-        set(Vector.Down)
-        set(Vector.Left)
-        set(Vector.Right)
+            if (G.map.leftOf(pos)?.build is BaseWall && G.map.rightOf(pos)?.build is BaseWall) "LR"
+            else if (G.map.upOf(pos)?.build is BaseWall && G.map.downOf(pos)?.build is BaseWall) "UD"
+            else if (G.map.leftOf(pos)?.build is BaseWall || G.map.rightOf(pos)?.build is BaseWall) "LR"
+            else "UD"
     }
 
     object Factory : BaseFactory {

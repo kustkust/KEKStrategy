@@ -4,21 +4,30 @@ import game.Cell
 import game.Direction
 import game.G
 import game.Player
+import utility.Event
 import utility.Vector
-import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON3
 import javax.swing.Timer
+import kotlin.properties.Delegates
 
-abstract class BaseUnit(owner_: Player, pos_: Vector) :
-    BaseEntity(owner_, pos_) {
-    var maxMovePoints = 10
-    var remMovePoints = maxMovePoints
-    var maxAttackPerTurn = 1
+abstract class BaseUnit(owner_: Player, pos_: Vector) : BaseEntity(owner_, pos_) {
+
+    var maxMovePoints = 1000
+
+    var remMovePoints: Int by Delegates.observable(maxMovePoints) { _, _, new ->
+        remMovePointsChanged(new)
+    }
+    val remMovePointsChanged = Event<Int>()
+
+    private var maxAttackPerTurn = 1
+
     var attackRem = 1
+
     var path = mutableListOf<Direction>()
 
     init {
+        animation.curTagName = "IDL"
         owner.addUnit(this)
     }
 
@@ -26,7 +35,7 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) :
     abstract fun canAttack(entity: BaseEntity): Boolean
     abstract fun canMoveTo(cell: Cell): Boolean
 
-    fun move(dir: Direction): Boolean {
+    private fun move(dir: Direction): Boolean {
         val newPos = pos + dir.offset
         val newCell = G.map[newPos]
         if (remMovePoints >= newCell.type.movePointCost && canMoveTo(newCell)) {
@@ -40,14 +49,14 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) :
         return false
     }
 
-    var isMoving = false
+    private var isMoving = false
     private lateinit var moveTimer: Timer
     private var paintSubTrans = Vector()
     override val paintPos: Vector
         get() = super.paintPos + paintSubTrans
 
     init {
-        val oneStepTime = 100
+        val oneStepTime = 400
         val steps = 10
         var curStep = 0
         moveTimer = Timer(oneStepTime / steps) {
@@ -63,6 +72,9 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) :
                     path.removeAt(0)
                     owner.updateObservableArea()
                 } else {
+                    if (curStep == 0) {
+                        animation.curTagName = path.first().litera
+                    }
                     curStep++
                     paintSubTrans = path.first().offset * G.map.cs * curStep / (steps + 1)
                 }
@@ -72,6 +84,7 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) :
                 paintSubTrans.y = 0
                 owner.updateObservableArea()
                 isMoving = false
+                animation.curTagName = "IDL"
             }
         }
     }

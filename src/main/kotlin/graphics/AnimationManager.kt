@@ -18,7 +18,7 @@ class AnimationManager {
     var lastTime = System.currentTimeMillis()
     var delta = 0L
 
-    private val timer: Timer = Timer(1000/30) {
+    private val timer: Timer = Timer(1000 / 30) {
         val t = System.currentTimeMillis()
         delta = t - lastTime
         lastTime = t
@@ -26,7 +26,7 @@ class AnimationManager {
             it.nextFrame(System.currentTimeMillis())
         }
         try {
-            G.win.gamePanel.repaint()
+            G.win.gameRenderPanel.repaint()
         } catch (t: Throwable) {
 
         }

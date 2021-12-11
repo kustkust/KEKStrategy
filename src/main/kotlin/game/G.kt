@@ -74,6 +74,9 @@ object G {
         animationManager.start()
         curPlayer.newTurn()
         state = State.Play
+
+        win.gameInterfacePanel.init()
+        win.gameInterfacePanel.setupForPlayer(curPlayer)
     }
 
     private fun endTurn() {
@@ -86,6 +89,7 @@ object G {
                 curPlayer.selectedEntity ?: curPlayer.getEntitiesOf<PlayerBase>()[0]
             )
             curPlayer.newTurn()
+            win.gameInterfacePanel.setupForPlayer(curPlayer)
         }
     }
 
@@ -129,12 +133,7 @@ object G {
         g.clearRect(0, 0, map.width * map.cs, map.height * map.cs)
         map.paint(g)
         curPlayer.paint(g)
-        g.color = curPlayer.color
-        g.drawString(
-            "player:${curPlayer.name} ${curPlayer.resource.toString_()}",
-            0,
-            g.font.size
-        )
+        g.color = Color.black
         g.drawString(
             "${round(1000f / if (animationManager.delta == 0L) 1 else animationManager.delta).toInt()}fps",
             win.innerSize.x - 50,

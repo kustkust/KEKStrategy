@@ -1,6 +1,9 @@
 package game.entities
 
-import game.*
+import game.Cell
+import game.Player
+import game.ResourceType
+import game.makeCost
 import graphics.Animation
 import utility.Vector
 import java.awt.Color
@@ -22,7 +25,7 @@ class Sawmill(owner: Player, pos: Vector) : BaseBuild(owner, pos) {
         override fun createEntity(owner: Player, pos: Vector) = Sawmill(owner, pos)
         override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override val entityName = Sawmill::class.simpleName?:""
+        override val entityName = Sawmill::class.simpleName ?: ""
         override val cost = makeCost(
             ResourceType.Gold to 10,
             ResourceType.Tree to 10,

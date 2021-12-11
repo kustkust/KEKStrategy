@@ -7,7 +7,6 @@ import utility.Vector
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
 
 class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
     BaseBuild(owner, pos) {
@@ -20,7 +19,12 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
     private var maxSpawnPerTurn = 1
     private var curSpawned = 1
     private val unitsList = ArrayList(Factory.creatableUnits)
-    private val unitsMenu = CreateMenu(unitsList, owner)
+    private val unitsMenu: CreateMenu = CreateMenu(unitsList, owner) { unitsMenu ->
+        if (unitsMenu.selectedIndex != -1) {
+            spawnUnit(unitsMenu.selectedIndex)
+            unitsMenu.unselect()
+        }
+    }
 
     private fun spawnUnit(i: Int) {
         if (curSpawned > 0 &&
@@ -28,7 +32,7 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
             unitsList[i].isOpen(owner) &&
             owner.pay(unitsList[i].cost)
         ) {
-            owner.addUnit(unitsList[i].createEntity(owner,pos) as BaseUnit)
+            owner.addUnit(unitsList[i].createEntity(owner, pos) as BaseUnit)
             curSpawned--
         }
     }
@@ -40,23 +44,21 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
     }
 
-    override fun paintInterface(g: Graphics) = unitsMenu.paint(g)
+    //override fun paintInterface(g: Graphics) = unitsMenu.paint(g)
+
+    override fun onSelected() {
+        super.onSelected()
+        G.win.gameInterfacePanel.setBuildList(unitsMenu)
+    }
+
+    override fun onUnselected() {
+        super.onUnselected()
+        G.win.gameInterfacePanel.setBuildList(null)
+    }
 
     override fun newTurn() {
         super.newTurn()
         curSpawned = maxSpawnPerTurn
-    }
-
-    override fun mousePressed(ev: MouseEvent) {
-        unitsMenu.mouseClicked(ev)
-        if(unitsMenu.selectedIndex!=-1){
-            spawnUnit(unitsMenu.selectedIndex)
-            unitsMenu.unselect()
-        }
-    }
-
-    override fun mouseMoved(ev: MouseEvent) {
-        //TO DO("Not yet implemented")
     }
 
     override fun keyClicked(ev: KeyEvent) {
@@ -64,7 +66,7 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
             spawnUnit(ev.keyCode - VK_1)
         }*/
         unitsMenu.keyClicked(ev)
-        if(unitsMenu.selectedIndex!=-1){
+        if (unitsMenu.selectedIndex != -1) {
             spawnUnit(unitsMenu.selectedIndex)
             unitsMenu.unselect()
         }
@@ -74,7 +76,7 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
         override fun createEntity(owner: Player, pos: Vector): BaseEntity = Barracks(owner, pos)
         override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override val entityName = Barracks::class.simpleName?:""
+        override val entityName = Barracks::class.simpleName ?: ""
 
         val creatableUnits = mutableListOf<BaseFactory>(MeleeUnit.Factory)
         override val cost: Map<ResourceType, Int> = mapOf(ResourceType.Gold to 5)

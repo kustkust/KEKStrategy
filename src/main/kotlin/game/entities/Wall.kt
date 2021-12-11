@@ -7,24 +7,16 @@ import java.awt.Color
 
 class Wall(
     owner_: Player, pos_: Vector,
-) : BaseBuild(owner_, pos_) {
+) : BaseWall(owner_, pos_) {
 
     override val factory: BaseFactory
         get() = Factory
 
-    init {
-        setupAnimation()
-        setupNeiAnimation()
-    }
-
-    private val BaseBuild.isWOrG
-        get() = this is Wall || this is Gate
-
-    fun setupAnimation() {
+    override fun setupAnimation() {
         var tag = ""
         val set = { d: Vector, l: String ->
             val b = G.map.getCell(pos + d)?.build
-            if (b?.isWOrG == true) {
+            if (b is BaseWall) {
                 tag += l
             }
         }
@@ -34,22 +26,6 @@ class Wall(
         set(Vector.Right, "R")
         if (tag.isEmpty()) tag = "W"
         animation.curTagName = tag
-    }
-
-    fun setupNeiAnimation() {
-        val set = { d: Vector ->
-            val b = G.map.getCell(pos + d)?.build
-            if (b is Wall) {
-                b.setupAnimation()
-            }
-            if (b is Gate) {
-                b.setupAnimation()
-            }
-        }
-        set(Vector.Up)
-        set(Vector.Down)
-        set(Vector.Left)
-        set(Vector.Right)
     }
 
     object Factory : BaseFactory {

@@ -9,7 +9,9 @@ import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.*
+import javax.swing.ImageIcon
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 class GameMenu(winWidth: Int, winHeight: Int) {
     //во имя главного меню
@@ -71,6 +73,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         //Сборка панели главного меню
         menuPanel.layout = null
         menuPanel.preferredSize = Dimension(winWidth, winHeight)
+        menuPanel.setBounds(0, 0, winWidth, winHeight)
         menuPanel.isOpaque = true
 
         // menuLabel.setBounds(winWidth / 3, winHeight / 3 - 100, winWidth / 2, winHeight / 10)
@@ -82,7 +85,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         exitButton.setBounds(winWidth / 13, winHeight / 3 + 3 * winHeight / 8 + 50, winWidth / 3, winHeight / 10)
         muteButton.setBounds(winWidth - 70, winHeight - 70, winWidth / 16, winHeight / 12)
 
-        editMapButton.addMouseListener(object: MouseAdapter() {
+        editMapButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 G.state = G.State.EditMap
                 G.map = GameMap()
@@ -98,49 +101,52 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pVsPButton.actionCommand = "pvp"
         pVsEButton.actionCommand = "pve"
         exitButton.actionCommand = "exit"
-      //  MuteButton.actionCommand = "mute"
+        //  MuteButton.actionCommand = "mute"
 
         muteButton.icon = muteButtonImg[0]
         //Изменение иконки кнопки мута музыки в зависимости от состояния
-        muteButton.addMouseListener(object: MouseAdapter() {
+        muteButton.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.On) {
+                if (G.musicState == G.MusicState.On) {
                     muteButton.icon = muteButtonImg[1]
-                }else{
+                } else {
                     muteButton.icon = muteButtonImg[4]
                 }
                 super.mouseEntered(e)
             }
+
             override fun mouseExited(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.On) {
+                if (G.musicState == G.MusicState.On) {
                     muteButton.icon = muteButtonImg[0]
-                }else{
+                } else {
                     muteButton.icon = muteButtonImg[3]
                 }
                 super.mouseExited(e)
             }
 
             override fun mousePressed(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.On) {
+                if (G.musicState == G.MusicState.On) {
                     muteButton.icon = muteButtonImg[2]
-                }else{
+                } else {
                     muteButton.icon = muteButtonImg[5]
                 }
                 super.mousePressed(e)
             }
+
             override fun mouseReleased(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.On) {
+                if (G.musicState == G.MusicState.On) {
                     muteButton.icon = muteButtonImg[0]
-                }else{
+                } else {
                     muteButton.icon = muteButtonImg[3]
                 }
                 super.mouseReleased(e)
             }
+
             override fun mouseClicked(e: MouseEvent?) {
-                if(G.musicState == G.MusicState.On) {
+                if (G.musicState == G.MusicState.On) {
                     G.musicState = G.MusicState.Off
                     muteButton.icon = muteButtonImg[4]
-                }else{
+                } else {
                     G.musicState = G.MusicState.On
                     muteButton.icon = muteButtonImg[1]
                 }
@@ -187,9 +193,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         pVsPButton.addActionListener(actLis)
         pVsEButton.addActionListener(actLis)
         exitButton.addActionListener(actLis)
-       // MuteButton.addActionListener(actLis)
 
-        //  menuPanel.add(menuLabel)
         menuPanel.add(pVsPButton)
         menuPanel.add(pVsEButton)
         menuPanel.add(editMapButton)
@@ -199,11 +203,17 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         //Сборка панели выбора карты
         mapChoosePanel.layout = null
         mapChoosePanel.preferredSize = Dimension(winWidth, winHeight)
+        mapChoosePanel.setBounds(0, 0, winWidth, winHeight)
         mapChoosePanel.isOpaque = true
 
         val mapText = GameLabel()
 
-        mapText.setBounds(winWidth / 50 + winWidth / 6, winHeight / 2 + winHeight / 5 - 10, winWidth / 2 + winWidth / 8, winHeight/2 - 130)
+        mapText.setBounds(
+            winWidth / 50 + winWidth / 6,
+            winHeight / 2 + winHeight / 5 - 10,
+            winWidth / 2 + winWidth / 8,
+            winHeight / 2 - 130
+        )
         mapText.isVisible = false
         mapChoosePanel.add(mapText)
 
@@ -211,12 +221,13 @@ class GameMenu(winWidth: Int, winHeight: Int) {
             mapButton.setBounds(winWidth / 50 + winWidth / 5 * index, winHeight / 2, winWidth / 6, winHeight / 6)
             mapButton.addActionListener(actLis)
 
-            mapButton.addMouseListener(object: MouseAdapter() {
+            mapButton.addMouseListener(object : MouseAdapter() {
                 override fun mouseEntered(e: MouseEvent?) {
                     mapText.isVisible = true
                     mapText.text = mapDescriptions[index]
                     super.mouseEntered(e)
                 }
+
                 override fun mouseExited(e: MouseEvent?) {
                     mapText.isVisible = false
                     super.mouseEntered(e)
@@ -267,6 +278,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         //Сборка панели меню паузы
         pausePanel.layout = null
         pausePanel.preferredSize = Dimension(winWidth, winHeight)
+        pausePanel.setBounds(0, 0, winWidth, winHeight)
         pausePanel.isOpaque = true
         pausePanel.background = Color(255, 255, 255, 30)
 
@@ -280,7 +292,6 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         continueButton.actionCommand = "continue"
         toMainMenuButton.addActionListener(actLis)
         continueButton.addActionListener(actLis)
-
 
         pausePanel.add(pauseLabel)
         pausePanel.add(toMainMenuButton)
@@ -302,7 +313,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
         continueButton.isVisible = true
     }
 
-    fun showWinner(curPlID: String,curPlCol: Color){
+    fun showWinner(curPlID: String, curPlCol: Color) {
         pauseLabel.foreground = curPlCol
         pauseLabel.text = "Player $curPlID Win"
         continueButton.isVisible = false

@@ -2,10 +2,10 @@ package game
 
 typealias Cost = Map<ResourceType, Int>
 
-fun Cost.toString_(): String {
+fun Cost.costToString(): String {
     var resStr = ""
     forEach {
-        resStr += it.key.name + ":" + it.value.toString() + " "
+        resStr += it.key.name + ":" + it.value.toString() + "\n"
     }
     return resStr
 }

@@ -7,11 +7,11 @@ import java.io.IOException
 import javax.imageio.ImageIO
 import javax.swing.JPanel
 
-class ImagePanel(path:String) : JPanel() {
+class ImagePanel(path: String) : JPanel() {
     private var image: BufferedImage? = null
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
-        g.drawImage(image, 0, 0, this)
+        g.drawImage(image, 0, 0, size.width, size.height, this)
     }
 
     init {

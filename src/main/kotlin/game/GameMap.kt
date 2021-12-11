@@ -4,7 +4,6 @@ import game.entities.Barracks
 import game.entities.BaseEntity
 import game.entities.MeleeUnit
 import game.entities.PlayerBase
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import utility.*
 import java.awt.BasicStroke
@@ -39,7 +38,7 @@ class GameMap {
     /**
      * Клетки карты
      */
-    private lateinit var cells: Matrix<Cell>
+    lateinit var cells: Matrix<Cell>
 
     var cellTranslation = Vector(0, 0)
         set(newT) {
@@ -50,13 +49,15 @@ class GameMap {
 
             selectedCellPos += newT - field
             field = newT
+            cellTranslationChanged(field)
         }
+    val cellTranslationChanged = Event<Vector>()
 
     /**
      * Размер одной клетки в пикселях
      */
     @Transient
-    val cs = 32
+    val cs = 64
 
     /**
      * Текстура для рисования тумана войны
@@ -96,7 +97,7 @@ class GameMap {
     fun getTranslatedForDraw(p: Vector) = (p - cellTranslation) * cs
     fun getTranslatedForDraw(x: Int, y: Int) = getTranslatedForDraw(Vector(x, y))
 
-    private val winSizeInCells
+    val winSizeInCells
         get() = Vector(
             min((G.win.innerSize.x + cs - 1) / cs, width),
             min((G.win.innerSize.y + cs - 1) / cs, height)
@@ -367,7 +368,8 @@ class GameMap {
 
     fun initPLayers() {
         val p1 = Vector(2, 2)
-        val p2 = Vector(width - 2, height - 2)
+        //val p2 = Vector(width - 2, height - 2)
+        val p2 = Vector(4, 4)
 
         G.players = arrayOf(
             Player("1").apply {

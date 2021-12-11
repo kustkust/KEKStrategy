@@ -1,6 +1,7 @@
 package utility
 
 import game.Cell
+import java.awt.Color
 import java.awt.Graphics
 import java.awt.Polygon
 import java.awt.event.MouseEvent
@@ -51,7 +52,7 @@ fun <T> Matrix<T>.changeMatrixSize(newWidth: Int, newHeight: Int, init: (Int, In
         removeFrom(newWidth)
     }
     if (oldHeight < newHeight) {
-        for(x in 0 until min(oldWidth, newWidth)) {
+        for (x in 0 until min(oldWidth, newWidth)) {
             this[x].ensureCapacity(newHeight)
             var n = newHeight - oldHeight
             while (n > 0) {
@@ -60,7 +61,7 @@ fun <T> Matrix<T>.changeMatrixSize(newWidth: Int, newHeight: Int, init: (Int, In
             }
         }
     } else if (height > newHeight) {
-        for(x in 0 until min(oldWidth, newWidth)) {
+        for (x in 0 until min(oldWidth, newWidth)) {
             this[x].removeFrom(newHeight)
         }
     }
@@ -102,7 +103,7 @@ fun <T> Matrix<T>.matrixForEachIndexed(pos: Vector, size: Vector, iter: (Int, In
         }
     }*/
 inline fun <reified T> makeMatrix(width_: Int, height_: Int, crossinline init: (Int, Int) -> T) =
-    makeArrayList(width_) {x -> makeArrayList(height_) {y -> init(x,y)} }
+    makeArrayList(width_) { x -> makeArrayList(height_) { y -> init(x, y) } }
 
 inline fun <reified T> Matrix<T>.matrixClone() = makeMatrix(width, height) { x, y -> this[x][y] }
 
@@ -116,7 +117,7 @@ val MouseEvent.pos
 fun makePolygon(vararg points: Vector) =
     Polygon(points.map { it.x }.toIntArray(), points.map { it.y }.toIntArray(), points.size)
 
-fun <T,R> Iterable<T>.filterMap(pred: (T)->Boolean, transform: (T) -> R) : List<R> {
+fun <T, R> Iterable<T>.filterMap(pred: (T) -> Boolean, transform: (T) -> R): List<R> {
     val ar = ArrayList<R>()
     forEach {
         if (pred(it)) {
@@ -182,6 +183,7 @@ fun Graphics.fillRect(pos: Vector, size: Vector) = fillRect(pos.x, pos.y, size.x
 fun Graphics.fillRect(rect: Rect) = fillRect(rect.pos, rect.size)
 
 fun Graphics.drawString(str: String, pos: Vector) = drawString(str, pos.x, pos.y)
+fun Graphics.drawMultiString(str: String, x: Int, y: Int) = drawMultiString(str, Vector(x, y))
 fun Graphics.drawMultiString(str: String, pos: Vector) {
     val p = pos.copy()
     str.split('\n').forEach {
@@ -189,7 +191,6 @@ fun Graphics.drawMultiString(str: String, pos: Vector) {
         drawString(it, p)
     }
 }
-
 
 
 val Map<Cell.CellDir, Boolean>.uls: String
@@ -227,3 +228,5 @@ val Map<Cell.CellDir, Boolean>.drs: String
         if (getValue(Cell.CellDir.Right)) tmp += 'R'
         return tmp
     }
+
+fun Color.withAlpha(newAlpha: Int): Color = Color(red, green, blue, newAlpha)

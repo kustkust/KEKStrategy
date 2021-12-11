@@ -2,17 +2,17 @@ package game
 
 import utility.Vector
 
-enum class Direction {
-    Up {
+enum class Direction(val litera: String) {
+    Up("U") {
         override val offset: Vector = Vector(0, -1)
     },
-    Down {
+    Down("D") {
         override val offset: Vector = Vector(0, 1)
     },
-    Left {
+    Left("L") {
         override val offset: Vector = Vector(-1, 0)
     },
-    Right {
+    Right("R") {
         override val offset: Vector = Vector(1, 0)
     };
 

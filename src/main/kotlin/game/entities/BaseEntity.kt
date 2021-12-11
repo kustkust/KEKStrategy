@@ -1,11 +1,11 @@
 package game.entities
 
 import game.*
-import graphics.Animation
 import utility.*
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import kotlin.properties.Delegates
 
 /**
  * Базовый класс для юнитов и построек
@@ -21,10 +21,14 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
      */
     var maxHp = factory.maxHP
 
+    val curHpChanged = Event<Int>()
+
     /**
      * Текущее здоровье сущности
      */
-    var curHp = 10
+    var curHp: Int by Delegates.observable(maxHp) { _, _, new ->
+        curHpChanged(new)
+    }
 
     /**
      * Мертва ли сущность
@@ -34,7 +38,7 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     /**
      * Технология, требуемая для открытия данной сущности
      */
-    val requiredTech get() = factory.requiredTechnology?.let { owner.technologies[it] }
+    private val requiredTech get() = factory.requiredTechnology?.let { owner.technologies[it] }
 
     /**
      * Открыта ли в дереве технологий данная сущность
@@ -89,6 +93,20 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
      */
     abstract fun selfCheck(from: BaseEntity? = null)
 
+    open fun onSelected() {
+        if (owner == G.curPlayer)
+            G.win.gameInterfacePanel.setEntityDescription(this)
+    }
+
+    open fun onUnselected() {
+        if (owner == G.curPlayer)
+            G.win.gameInterfacePanel.setEmptyDescription()
+    }
+
+    open fun onRemoving() {
+        owner.updateObservableArea()
+    }
+
     /**
      * Обработка нажатий клавиш мыши
      */
@@ -109,13 +127,13 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     /**
      * Радиус, который видит сущность, расстояние по умолчанию считается как x+y
      */
-    var observableradius = 2
+    private var observableRadius = 2
 
     /**
      * Последовательно вызывает функцию iter для каждой клетки, которую видит сущность
      */
     open fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit) =
-        epsNei(observableradius, pos) { if (it in G.map) iter(it) }
+        epsNei(observableRadius, pos) { if (it in G.map) iter(it) }
 
     /**
      * Обновляет территорию, которую открыл владелец
@@ -150,11 +168,13 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     abstract val factory: BaseFactory
 
     /**
-     * Клетка на которой находися сущность
+     * Клетка на которой находится сущность
      */
     val onCell get() = G.map[pos]
 
-    override operator fun equals(other: Any?) = id == (other as BaseEntity).id
+    override operator fun equals(other: Any?) =
+        if (other != null) id == (other as BaseEntity).id else false
+
     override fun hashCode(): Int {
         var result = pos.hashCode()
         result = 31 * result + owner.hashCode()

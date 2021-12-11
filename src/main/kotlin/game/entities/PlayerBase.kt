@@ -34,7 +34,7 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
         g.color = Color.BLACK
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
 
-        if(selected && !owner.isTechOpen){
+        if (selected && !owner.isTechOpen) {
             selectedBuild?.let { selectedBuild ->
                 val onMapPos = G.map.selectedCellPos
                 val mPos = (onMapPos - G.map.cellTranslation) * G.map.cs
@@ -48,7 +48,7 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
         }
     }
 
-    override fun paintInterface(g: Graphics) = buildMenu.paint(g)
+    //override fun paintInterface(g: Graphics) = buildMenu.paint(g)
 
     private fun canBuildOn(cellPos: Vector) = G.map[cellPos].type in selectedBuild!!.allowedCells &&
             owner.observableArea[cellPos] != ObservableStatus.NotInvestigated &&
@@ -66,7 +66,6 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
     }
 
     override fun mouseClicked(ev: MouseEvent) {
-        buildMenu.mouseClicked(ev)
         selectedBuild?.let { selectedBuild ->
             val p = G.map.selectedCellPos
             when (ev.button) {
@@ -75,7 +74,7 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
                         owner.pay(selectedBuild.cost)
                     ) {
                         //owner.addBuild(selectedBuild.createEntity(owner, p) as BaseBuild)
-                        selectedBuild.createEntity(owner,p)
+                        selectedBuild.createEntity(owner, p)
                     }
                 MouseEvent.BUTTON3 ->
                     buildMenu.unselect()
@@ -95,6 +94,16 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
             owner.isLoose = true
             G.checkWin()
         }
+    }
+
+    override fun onSelected() {
+        super.onSelected()
+        G.win.gameInterfacePanel.setBuildList(buildMenu)
+    }
+
+    override fun onUnselected() {
+        super.onUnselected()
+        G.win.gameInterfacePanel.setBuildList(null)
     }
 
     object Factory : BaseFactory {

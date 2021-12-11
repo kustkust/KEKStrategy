@@ -6,21 +6,8 @@ import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.MouseEvent
 import java.lang.Integer.max
-import kotlin.collections.List
-import kotlin.collections.all
-import kotlin.collections.arrayListOf
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.forEach
-import kotlin.collections.getValue
-import kotlin.collections.isNotEmpty
-import kotlin.collections.iterator
-import kotlin.collections.listOf
-import kotlin.collections.map
-import kotlin.collections.maxOf
-import kotlin.collections.mutableListOf
-import kotlin.collections.mutableMapOf
-import kotlin.collections.plusAssign
 import kotlin.collections.set
 
 class TechnologyTree(val owner: Player) {
@@ -67,7 +54,7 @@ class TechnologyTree(val owner: Player) {
             g.color = if (isOpen) Color.GREEN else if (isOpenable) Color.YELLOW else Color.GRAY
             g.fillRect(pos, size)
             g.color = Color.black
-            g.drawMultiString(name + "\n" + cost.toString_(), pos)
+            g.drawMultiString(name + "\n" + cost.costToString(), pos)
         }
     }
 
@@ -144,7 +131,7 @@ class TechnologyTree(val owner: Player) {
             makeCost(ResourceType.Gold to 30),
             false,
             listOf("SawmillTech", "MineTech")
-        ) {owner.getEntitiesOf<PlayerBase>().forEach { it.maxBuildDistance += 10 }}
+        ) { owner.getEntitiesOf<PlayerBase>().forEach { it.maxBuildDistance += 10 } }
         place()
     }
 

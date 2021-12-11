@@ -17,13 +17,16 @@ import javax.swing.JPanel
 
 class MainWindow : JFrame() {
 
-    var gameWidth = 800
-    var gameHeight = 600
+    var gameWidth = 1024
+    var gameHeight = 768
 
     val mainPanel = JPanel()
 
     val menu = GameMenu(gameWidth, gameHeight)
-    val gamePanel = GamePanel()
+    val gamePanel = JPanel()
+
+    val gameRenderPanel = GamePanel()
+    val gameInterfacePanel = SidePanel()
 
     val fm: FontMetrics
         get() =
@@ -33,18 +36,28 @@ class MainWindow : JFrame() {
     var isLeftButtonDown = false
 
     val innerSize
-        get() = Vector(gamePanel.width, gamePanel.height)
+        get() = Vector(gameRenderPanel.width, gameRenderPanel.height)
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
         isVisible = true
         isResizable = true
 
+        mainPanel.layout = null
         mainPanel.preferredSize = Dimension(gameWidth, gameHeight)
+        mainPanel.isOpaque = false
         add(mainPanel)
 
         gamePanel.preferredSize = Dimension(gameWidth, gameHeight)
+        gamePanel.setBounds(0, 0, gameWidth, gameHeight)
         gamePanel.isVisible = false
+        gamePanel.layout = null
+
+        val gameInterfacePanelWidth = 128
+        gameRenderPanel.setBounds(0, 0, gameWidth - gameInterfacePanelWidth, gameHeight)
+        gamePanel.add(gameRenderPanel)
+        gameInterfacePanel.setBounds(gameWidth - 128, 0, gameInterfacePanelWidth, gameHeight)
+        gamePanel.add(gameInterfacePanel)
         mainPanel.add(gamePanel)
 
         mainPanel.add(menu.menuPanel)

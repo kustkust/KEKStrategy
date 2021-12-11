@@ -1,8 +1,8 @@
 package game.entities
 
-import utility.Vector
 import game.*
 import graphics.Animation
+import utility.Vector
 import java.awt.Color
 import java.awt.Graphics
 import kotlin.math.absoluteValue
@@ -63,10 +63,13 @@ class MeleeUnit(owner: Player, pos: Vector = Vector()) : BaseUnit(owner, pos) {
         override fun createEntity(owner: Player, pos: Vector) = MeleeUnit(owner, pos)
         override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override val entityName = MeleeUnit::class.simpleName?:""
-        val maxLVL = 3
+        override fun getPreview(color: Color) =
+            super.getPreview(color).apply { curTagName = "IDL" }
 
-        val baseDamage = 3
+        override val entityName = MeleeUnit::class.simpleName ?: ""
+        const val maxLVL = 3
+
+        const val baseDamage = 10
 
         override val cost = mapOf(ResourceType.Gold to 5)
         override var allowedCells = mutableListOf(

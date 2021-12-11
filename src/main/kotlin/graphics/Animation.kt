@@ -34,10 +34,10 @@ class Animation() {
         fun paint(g: Graphics, p: Vector, source: BufferedImage) {
             g.drawImage(
                 source,
-                p.x + spriteSourceSize.l,
-                p.y + spriteSourceSize.t,
-                p.x + spriteSourceSize.r,
-                p.y + spriteSourceSize.b,
+                p.x + spriteSourceSize.l * 2,
+                p.y + spriteSourceSize.t * 2,
+                p.x + spriteSourceSize.r * 2,
+                p.y + spriteSourceSize.b * 2,
                 frame.l, frame.t, frame.r, frame.b,
                 null,
             )

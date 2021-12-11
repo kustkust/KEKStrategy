@@ -86,7 +86,7 @@ class Rect(
 
     @Serializer(forClass = Rect::class)
     companion object : KSerializer<Rect> {
-        override val descriptor = buildClassSerialDescriptor("utilite.Rect") {
+        override val descriptor = buildClassSerialDescriptor("Rect") {
             element<Int>("x")
             element<Int>("y")
             element<Int>("w")

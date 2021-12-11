@@ -3,10 +3,7 @@ package game.entities
 import game.*
 import graphics.Animation
 import utility.Vector
-import utility.makePolygon
 import java.awt.Color
-import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
 
 class Mine(owner: Player, pos: Vector) : BaseBuild(owner, pos) {
     override val factory get() = Factory
@@ -29,7 +26,7 @@ class Mine(owner: Player, pos: Vector) : BaseBuild(owner, pos) {
         override fun createEntity(owner: Player, pos: Vector) = Mine(owner, pos)
         override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override val entityName = Mine::class.simpleName?:""
+        override val entityName = Mine::class.simpleName ?: ""
         override val cost: Cost = makeCost(
             ResourceType.Gold to 10,
             ResourceType.Tree to 10,

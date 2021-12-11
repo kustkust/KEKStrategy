@@ -109,7 +109,7 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
     enum class Type {
         Water {
             override var movePointCost: Int = 2
-            override var color: Color = Color(0, 0, 255)
+            override var color: Color = Color(0, 191, 255)
         },
         Ground {
             override var movePointCost: Int = 1
@@ -122,7 +122,7 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
         },
         Hills {
             override var movePointCost: Int = 3
-            override var color: Color = Color(64, 128, 64)
+            override var color: Color = Color(0, 128, 0)
         },
         Mountain {
             override var movePointCost: Int = 3

@@ -3,15 +3,16 @@ package game
 import game.entities.BaseBuild
 import game.entities.BaseEntity
 import game.entities.BaseUnit
+import game.entities.BaseWall
 import utility.*
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.VK_Q
-import java.awt.event.KeyEvent.VK_T
+import java.awt.event.KeyEvent.*
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseEvent.BUTTON3
+import kotlin.collections.set
 
 class Player(val name: String) {
     var isLoose = false
@@ -20,7 +21,6 @@ class Player(val name: String) {
      * Список юнитов, принадлежащих игроку
      */
     private val units = mutableListOf<BaseUnit>()
-
 
     /**
      * Список зданий, принадлежащих игроку
@@ -45,7 +45,15 @@ class Player(val name: String) {
         }
         get() = if (selectedEntity is BaseBuild) selectedEntity as BaseBuild else null
 
-    var selectedEntity: BaseEntity? = if (entities.isNotEmpty()) entities[0] else null
+    var selectedEntity = entities.firstOrNull()
+        set(value) {
+            if (value == null || field == null || field != value) {
+                val tmp = field
+                field = value
+                tmp?.onUnselected()
+                field?.onSelected()
+            }
+        }
 
     /**
      * Список сущностей, принадлежащих игроку, объединяет список юнитов и зданий
@@ -89,6 +97,7 @@ class Player(val name: String) {
     fun mousePressed(ev: MouseEvent) {
 
     }
+
     /**
      * Обработка нажатий клавиш мыши
      */
@@ -135,6 +144,17 @@ class Player(val name: String) {
         when (ev.keyCode) {
             VK_Q -> selectedEntity = null
             VK_T -> isTechOpen = !isTechOpen
+            VK_R -> {
+                selectedBuild?.let {
+                    val isWallOrGate = it is BaseWall
+                    val tmpPos = it.pos
+                    it.cost.forEach { (t, c) -> changeResource(t, c * 50 / 100) }
+                    removeBuild(it)
+                    if (isWallOrGate) {
+                        BaseWall.setupNeiAnimation(tmpPos)
+                    }
+                }
+            }
         }
         selectedEntity?.keyClicked(ev)
     }
@@ -143,6 +163,17 @@ class Player(val name: String) {
         if (isTechOpen) {
             technologies.paint(g)
         }
+    }
+
+    /**
+     * Вызывается при начале игроком хода
+     */
+    fun newTurn() {
+        entities.forEach {
+            it.isTurnEnded = false
+            it.newTurn()
+        }
+        selectedEntity?.onSelected()
     }
 
     /**
@@ -158,16 +189,21 @@ class Player(val name: String) {
                 }
             }
         }
+        G.win.gameInterfacePanel.setEmptyDescription()
         return false
     }
 
-    /**
-     * Вызывается при начале игроком хода
-     */
-    fun newTurn() {
-        entities.forEach {
-            it.isTurnEnded = false
-            it.newTurn()
+    fun addEntity(entity: BaseEntity) {
+        when (entity) {
+            is BaseUnit -> addUnit(entity)
+            is BaseBuild -> addBuild(entity)
+        }
+    }
+
+    fun removeEntity(entity: BaseEntity) {
+        when (entity) {
+            is BaseUnit -> removeUnit(entity)
+            is BaseBuild -> removeBuild(entity)
         }
     }
 
@@ -190,6 +226,7 @@ class Player(val name: String) {
     fun removeUnit(unit: BaseUnit) {
         G.map[unit.pos].unit = null
         units.removeIf { it == unit }
+        unit.onRemoving()
         if (selectedUnit == unit) {
             selectedUnit = null
         }
@@ -213,6 +250,7 @@ class Player(val name: String) {
     fun removeBuild(build: BaseBuild) {
         G.map[build.pos].build = null
         builds.removeIf { it == build }
+        build.onRemoving()
         if (selectedBuild == build) {
             selectedBuild = null
         }
