@@ -12,6 +12,7 @@ import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.Clip
 import kotlin.math.round
 
 object G {
@@ -249,9 +250,11 @@ object G {
             if (state == State.Menu) {
                 menuMusicClip.framePosition = 0
                 menuMusicClip.start()
+                menuMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
             } else {
                 gameMusicClip.framePosition = 0
                 gameMusicClip.start()
+                gameMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
             }
         }
     }
