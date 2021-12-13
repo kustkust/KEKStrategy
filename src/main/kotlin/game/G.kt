@@ -271,8 +271,8 @@ object G {
     fun main(a: Array<String>) {
         win = MainWindow()
 
-        gameMusicClip.open(gameMusic)
         menuMusicClip.open(menuMusic)
+        gameMusicClip.open(gameMusic)
         playMusic()
     }
 }

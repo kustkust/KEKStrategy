@@ -32,6 +32,7 @@ open class EntityDescription : JPanel() {
         add(entityHP)
         add(unitAP)
         sellButton.text = "Sell"
+        sellButton.isFocusable = false
         add(sellButton)
     }
 

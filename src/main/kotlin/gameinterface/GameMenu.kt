@@ -176,7 +176,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
                     G.state = G.State.Menu
                     G.win.gamePanel.isVisible = false
                     standardVisible()
-                    G.startGame()
+                    //G.startGame()
                     G.playMusic()
                 }
                 //Кнопачки меню выбора карт

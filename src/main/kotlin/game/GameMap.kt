@@ -425,8 +425,8 @@ class GameMap {
                 val dirPower = power + Random.nextInt(-1, 1)
                 for (t in 0..dirPower) {
                     if (inMap(p + dir.offset * t)) {
-                        cells[p + dir.offset * t].type +=
-                            if (Random.nextInt(1, 10) == 1) 0 else 1
+                        cells[p + dir.offset * t].type = Cell.Type.Ground
+                            //if (Random.nextInt(1, 10) == 1) 0 else 1
                     }
                 }
             }
