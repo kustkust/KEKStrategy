@@ -86,9 +86,7 @@ object G {
                 curPlayerId++
                 curPlayerId %= players.size
             } while (curPlayer.isLoose)
-            map.centerOn(
-                curPlayer.selectedEntity ?: curPlayer.getEntitiesOf<PlayerBase>()[0]
-            )
+            map.centerOn(curPlayer.selectedEntity ?: curPlayer.getEntitiesOf<PlayerBase>()[0])
             curPlayer.newTurn()
             win.gameInterfacePanel.setupForPlayer(curPlayer)
         }
@@ -250,11 +248,11 @@ object G {
             if (state == State.Menu) {
                 menuMusicClip.framePosition = 0
                 menuMusicClip.start()
-                menuMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
+                menuMusicClip.loop(Clip.LOOP_CONTINUOUSLY)
             } else {
                 gameMusicClip.framePosition = 0
                 gameMusicClip.start()
-                gameMusicClip.loop(Clip.LOOP_CONTINUOUSLY);
+                menuMusicClip.loop(Clip.LOOP_CONTINUOUSLY)
             }
         }
     }

@@ -1,5 +1,6 @@
 package gameinterface
 
+import game.entities.Barracks
 import game.entities.BaseEntity
 import game.entities.BaseUnit
 import java.awt.Color
@@ -23,7 +24,6 @@ open class EntityDescription : JPanel() {
         { (entity as? BaseUnit)?.let { unitAP.text = "MP: ${it.remMovePoints}/${it.maxMovePoints}" } }
 
     private val sellButton = JButton()
-    private var sellButtonListener: MouseAdapter? = null
 
     init {
         background = Color.gray
@@ -32,6 +32,11 @@ open class EntityDescription : JPanel() {
         add(entityHP)
         add(unitAP)
         sellButton.text = "Sell"
+        sellButton.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent?) {
+                entity?.let{ it.owner.removeEntity(it) }
+            }
+        })
         sellButton.isFocusable = false
         add(sellButton)
     }
@@ -44,12 +49,6 @@ open class EntityDescription : JPanel() {
 
             setEntityHp(0)
             entity.curHpChanged += setEntityHp
-
-            sellButtonListener = object : MouseAdapter() {
-                override fun mouseClicked(e: MouseEvent?) {
-                    entity.owner.removeEntity(entity)
-                }
-            }.apply { sellButton.addMouseListener(this) }
 
             if (entity is BaseUnit) {
                 setUnitAp(0)
@@ -66,8 +65,6 @@ open class EntityDescription : JPanel() {
         entityName.text = ""
 
         entityHP.text = ""
-
-        sellButton.removeMouseListener(sellButtonListener)
 
         unitAP.text = ""
     }

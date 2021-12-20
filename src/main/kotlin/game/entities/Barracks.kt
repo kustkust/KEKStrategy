@@ -18,7 +18,7 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
 
     private var maxSpawnPerTurn = 1
     private var curSpawned = 1
-    private val unitsList = ArrayList(Factory.creatableUnits)
+    val unitsList = ArrayList(Factory.creatableUnits)
     private val unitsMenu: CreateMenu = CreateMenu(unitsList, owner) { unitsMenu ->
         if (unitsMenu.selectedIndex != -1) {
             spawnUnit(unitsMenu.selectedIndex)
@@ -78,7 +78,7 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
 
         override val entityName = Barracks::class.simpleName ?: ""
 
-        val creatableUnits = mutableListOf<BaseFactory>(MeleeUnit.Factory)
+        val creatableUnits = mutableListOf<BaseFactory>(MeleeUnit.Factory, Gnom.Factory)
         override val cost: Map<ResourceType, Int> = mapOf(ResourceType.Gold to 5)
         override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Ground)
         override val maxHP: Int = 10

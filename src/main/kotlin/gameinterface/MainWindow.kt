@@ -12,8 +12,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
-import javax.swing.JFrame
-import javax.swing.JPanel
+import javax.swing.*
 
 class MainWindow : JFrame() {
 

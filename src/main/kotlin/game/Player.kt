@@ -144,17 +144,7 @@ class Player(val name: String) {
         when (ev.keyCode) {
             VK_Q -> selectedEntity = null
             VK_T -> isTechOpen = !isTechOpen
-            VK_R -> {
-                selectedBuild?.let {
-                    val isWallOrGate = it is BaseWall
-                    val tmpPos = it.pos
-                    it.cost.forEach { (t, c) -> changeResource(t, c * 50 / 100) }
-                    removeBuild(it)
-                    if (isWallOrGate) {
-                        BaseWall.setupNeiAnimation(tmpPos)
-                    }
-                }
-            }
+            VK_R -> selectedEntity?.let { sellEntity(it)}
         }
         selectedEntity?.keyClicked(ev)
     }
@@ -191,6 +181,11 @@ class Player(val name: String) {
         }
         G.win.gameInterfacePanel.setEmptyDescription()
         return false
+    }
+
+    fun sellEntity(entity: BaseEntity) {
+        entity.cost.forEach { (t, c) -> changeResource(t, c * 50 / 100) }
+        removeEntity(entity)
     }
 
     fun addEntity(entity: BaseEntity) {
@@ -248,11 +243,16 @@ class Player(val name: String) {
      * @param build здание, которое будет удалено
      */
     fun removeBuild(build: BaseBuild) {
+        val isWallOrGate = build is BaseWall
+        val tmpPos = build.pos
         G.map[build.pos].build = null
         builds.removeIf { it == build }
         build.onRemoving()
         if (selectedBuild == build) {
             selectedBuild = null
+        }
+        if (isWallOrGate) {
+            BaseWall.setupNeiAnimation(tmpPos)
         }
     }
 

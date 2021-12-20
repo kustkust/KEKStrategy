@@ -132,6 +132,12 @@ class TechnologyTree(val owner: Player) {
             false,
             listOf("SawmillTech", "MineTech")
         ) { owner.getEntitiesOf<PlayerBase>().forEach { it.maxBuildDistance += 10 } }
+        addTech(
+            "GnomTech",
+            makeCost(ResourceType.Gold to 30),
+            false,
+            listOf("MineTech", "MeleeUnit")
+        )
         place()
     }
 
