@@ -7,6 +7,10 @@ import java.awt.Polygon
 import java.awt.event.MouseEvent
 import kotlin.math.*
 
+fun Int.sqr(): Int = this*this
+fun Float.sqr(): Float = this*this
+fun Double.sqr(): Double = this*this
+
 typealias Matrix<T> = ArrayList<ArrayList<T>>
 
 fun <T> ArrayList<T>.removeRange(from: Int, to: Int) {
