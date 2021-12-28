@@ -10,6 +10,8 @@ import java.awt.Graphics
 
 //@Serializable
 class Cell(val pos: Vector, type_: Type = Type.Water) {
+    var noise = 0.0
+
     var type = type_
         set(value) {
             field = value
@@ -103,6 +105,13 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
                 animation.paint(g, p)
             }
             else -> animation.paint(g, p)
+        }
+        if (G.map.showPerlin) {
+            val c = (255 * noise).toInt()
+            g.color = Color(c, c, c)
+            g.fillRect(p, Vector(G.map.cs, G.map.cs))
+            g.color = Color.red
+            g.drawString(noise.toString(), p.x + 5, p.y + 10)
         }
     }
 

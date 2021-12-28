@@ -15,8 +15,10 @@ import java.awt.event.KeyEvent.*
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
+import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.round
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 //@Serializable
@@ -93,6 +95,9 @@ class GameMap {
 
     @Transient
     var showGrid = true
+
+    @Transient
+    var showPerlin = false
 
     fun getTranslatedForDraw(p: Vector) = (p - cellTranslation) * cs
     fun getTranslatedForDraw(x: Int, y: Int) = getTranslatedForDraw(Vector(x, y))
@@ -221,6 +226,7 @@ class GameMap {
         when (ev.keyCode) {
             VK_F -> fogOfWar = !fogOfWar
             VK_G -> showGrid = !showGrid
+            VK_P -> showPerlin = !showPerlin
         }
     }
 
@@ -395,7 +401,8 @@ class GameMap {
         val p1 = Vector(2, 2)
         val p2 = Vector(width - 2, height - 2)
 
-        generateMapByTwoPoints(p1, 4, p2, 2, 1)
+        //generateMapByTwoPoints(p1, 4, p2, 2, 1)
+        generateMapByPerlin(5)
         setAnimation()
 
         initPLayers()
@@ -426,10 +433,40 @@ class GameMap {
                 for (t in 0..dirPower) {
                     if (inMap(p + dir.offset * t)) {
                         cells[p + dir.offset * t].type = Cell.Type.Ground
-                            //if (Random.nextInt(1, 10) == 1) 0 else 1
+                        //if (Random.nextInt(1, 10) == 1) 0 else 1
                     }
                 }
             }
+        }
+    }
+
+    private fun generateMapByPerlin(step: Int) {
+        val perlinSize = size / step
+        val perlinGrid = makeMatrix(perlinSize + Vector.DownRight) {
+            VectorR.byAngleAndRadius(2 * kotlin.math.PI * Random.nextFloat(), 1.0)
+        }
+        val norm = sqrt(2.0) * step / 2
+        val cellTypes = Cell.Type.values()
+        cells.matrixForEachIndexed { p, c ->
+            val rPos = VectorR(p.x + 0.5, p.y + 0.5)
+            val perlinPos = p / step
+            val perlinRPos = (perlinPos * step).toVectorR()
+            val t = (rPos - perlinRPos) / step
+
+            val lt = (rPos - perlinRPos) * perlinGrid[perlinPos]
+            val lb = (rPos - (perlinRPos + VectorR(0, step))) * perlinGrid[perlinPos + Vector.Down]
+            val l = lt + t.y * (lb - lt)
+
+            val rt = (rPos - (perlinRPos + VectorR(step, 0))) * perlinGrid[perlinPos + Vector.Right]
+            val rb = (rPos - (perlinRPos + VectorR(step, step))) * perlinGrid[perlinPos + Vector.DownRight]
+            val r = rt + t.y * (rb - rt)
+
+            val rawNoise = l + t.x * (r - l)
+            val normaliseNoise = (rawNoise + norm) / norm / 2 //должно быть от 0 до 1
+            var cellType = floor(normaliseNoise * cellTypes.size).toInt()
+            if (cellType >= cellTypes.size) cellType = cellTypes.size - 1
+            cells[p].type = cellTypes[cellType]
+            cells[p].noise = normaliseNoise
         }
     }
 }
