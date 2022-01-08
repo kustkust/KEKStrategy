@@ -130,10 +130,28 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     private var observableRadius = 2
 
     /**
+     * Высота сущности, нужна для расчёта видимой области
+     */
+    open var height = 0
+
+    /**
      * Последовательно вызывает функцию iter для каждой клетки, которую видит сущность
      */
     open fun iterateInvestigatedArea(iter: (pos: Vector) -> Unit) =
-        epsNei(observableRadius, pos) { if (it in G.map) iter(it) }
+        epsNei(observableRadius, pos) { invCellPos ->
+            if (invCellPos in G.map) {
+                val l = getCellLine(pos, invCellPos)
+                val visible = if (l.size<2) {
+                    true
+                } else {
+                    val mHeight = onCell.height + height
+                    l.subList(1, l.size - 1).all { G.map[it].visibleHeight <= mHeight }
+                }
+                if (visible) {
+                    iter(invCellPos)
+                }
+            }
+        }
 
     /**
      * Обновляет территорию, которую открыл владелец

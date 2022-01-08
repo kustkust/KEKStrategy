@@ -51,7 +51,7 @@ class Gnom(owner: Player, pos: Vector) : BaseUnit(owner, pos) {
             Cell.Type.Ground,
             Cell.Type.Forest,
             Cell.Type.Mountain,
-            Cell.Type.Hills
+            Cell.Type.Hills,
         )
         override val maxHP: Int = 10
         override val requiredTechnology: String = "GnomTech"

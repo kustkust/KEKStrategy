@@ -25,6 +25,8 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
         Sawmill.Factory,
     )
 
+    override var height = 1
+
     private val buildMenu = CreateMenu(buildsList, owner_)
 
     override fun paint(g: Graphics) {

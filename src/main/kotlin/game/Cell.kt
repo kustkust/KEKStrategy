@@ -7,6 +7,7 @@ import kotlinx.serialization.Transient
 import utility.*
 import java.awt.Color
 import java.awt.Graphics
+import kotlin.math.max
 
 //@Serializable
 class Cell(val pos: Vector, type_: Type = Type.Water) {
@@ -18,6 +19,12 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
             setAnimation()
             setupNeiAnimation()
         }
+
+    val height: Int
+        get() = type.height
+
+    val visibleHeight: Int
+        get() = max(type.height + max(unit?.height ?: 0, build?.height ?: 0), type.visibleHeight)
 
     @Transient
     var unit: BaseUnit? = null
@@ -115,31 +122,20 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
         }
     }
 
-    enum class Type {
-        Water {
-            override var movePointCost: Int = 2
-            override var color: Color = Color(0, 191, 255)
-        },
-        Ground {
-            override var movePointCost: Int = 1
-            override var color: Color = Color(0, 255, 0)
-        },
-        Forest {
-            override var movePointCost: Int = 2
-            override var color: Color = Color(0, 128, 0)
+    /**
+     * Тип клетки
+     * @param movePointCost базовая стоимость перемещения на клетку
+     * @param height высота на которой находится юнит
+     * @param visibleHeight высота окружения на клетке, должна быть больше чем [height]
+     * @param color цвет клетки, используется на миникарте
+     */
+    enum class Type(val movePointCost: Int, val height: Int, val visibleHeight: Int, val color: Color) {
+        Water(2, 0, 0, Color(0, 191, 255)),
+        Ground(1, 1, 1, Color(0, 255, 0)),
+        Forest(2, 1, 2, Color(0, 128, 0)),
+        Hills(3, 2, 2, Color(0, 128, 0)),
+        Mountain(3 , 3, 3, Color(128, 128, 128));
 
-        },
-        Hills {
-            override var movePointCost: Int = 3
-            override var color: Color = Color(0, 128, 0)
-        },
-        Mountain {
-            override var movePointCost: Int = 3
-            override var color: Color = Color(128, 128, 128)
-        };
-
-        abstract var movePointCost: Int
-        abstract var color: Color
         val size
             get() = values().size
 

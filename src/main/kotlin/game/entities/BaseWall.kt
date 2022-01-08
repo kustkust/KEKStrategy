@@ -10,6 +10,8 @@ abstract class BaseWall(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) 
         setupNeiAnimation(pos)
     }
 
+    override var height = 1
+
     abstract fun setupAnimation()
 
     companion object {
