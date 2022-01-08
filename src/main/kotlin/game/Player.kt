@@ -163,6 +163,7 @@ class Player(val name: String) {
             it.isTurnEnded = false
             it.newTurn()
         }
+        updateObservableArea()
         selectedEntity?.onSelected()
     }
 
@@ -184,8 +185,10 @@ class Player(val name: String) {
     }
 
     fun sellEntity(entity: BaseEntity) {
-        entity.cost.forEach { (t, c) -> changeResource(t, c * 50 / 100) }
-        removeEntity(entity)
+        if (entity.selable) {
+            entity.cost.forEach { (t, c) -> changeResource(t, c * 50 / 100) }
+            removeEntity(entity)
+        }
     }
 
     fun addEntity(entity: BaseEntity) {
@@ -297,6 +300,8 @@ class Player(val name: String) {
      */
     val observableArea = makeMatrix(G.map.size) { ObservableStatus.NotInvestigated }
 
+    private val visibleCells = mutableSetOf<Vector>()
+
     /**
      * Обновить наблюдаемую игроком зону
      */
@@ -304,8 +309,11 @@ class Player(val name: String) {
         investigatedArea.matrixForEachIndexed { pos, cellStatus ->
             observableArea[pos] = cellStatus
         }
-        entities.forEach { entity ->
-            entity.updateOwnerObservableArea()
+        visibleCells.clear()
+        entities.forEach { entity -> entity.iterateInvestigatedArea { visibleCells.add(it) } }
+        visibleCells.forEach {
+            observableArea[it] = ObservableStatus.Observable
+            G.map[it].visibleBy(this)
         }
     }
 

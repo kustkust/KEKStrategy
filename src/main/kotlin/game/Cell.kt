@@ -33,6 +33,9 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
     var build: BaseBuild? = null
     val pixelBounds get() = Rect(pos * G.map.cs, Vector(G.map.cs, G.map.cs))
 
+    val buildsShadow = mutableMapOf<Player, Animation>()
+    val unitsShadow = mutableMapOf<Player, Animation>()
+
     var animation: Animation
         get() = animationUL
         set(value) {
@@ -122,6 +125,27 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
         }
     }
 
+    fun visibleBy(player: Player) {
+        if (build == null) {
+            buildsShadow.remove(player)
+        } else if (!player.own(build)) {
+            buildsShadow[player] = build!!.animation.copy()
+            buildsShadow.getValue(player).apply {
+                run = false
+                curFrameInd = 0
+            }
+        }
+        if (unit == null) {
+            unitsShadow.remove(player)
+        } else if (!player.own(unit)) {
+            unitsShadow[player] = unit!!.animation.copy()
+            unitsShadow.getValue(player).apply {
+                run = false
+                curFrameInd = 0
+            }
+        }
+    }
+
     /**
      * Тип клетки
      * @param movePointCost базовая стоимость перемещения на клетку
@@ -134,7 +158,7 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
         Ground(1, 1, 1, Color(0, 255, 0)),
         Forest(2, 1, 2, Color(0, 128, 0)),
         Hills(3, 2, 2, Color(0, 128, 0)),
-        Mountain(3 , 3, 3, Color(128, 128, 128));
+        Mountain(3, 3, 3, Color(128, 128, 128));
 
         val size
             get() = values().size

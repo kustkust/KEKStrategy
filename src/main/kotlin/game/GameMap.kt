@@ -128,6 +128,8 @@ class GameMap {
                 } else {
                     cell.paint(g)
                     if (curPlayerObs[x][y] == ObservableStatus.Investigated) {
+                        cell.buildsShadow[G.curPlayer]?.paint(g, Vector(px, py))
+                        cell.unitsShadow[G.curPlayer]?.paint(g, Vector(px, py))
                         g.drawImage(shadow, px, py, null)
                     }
                 }

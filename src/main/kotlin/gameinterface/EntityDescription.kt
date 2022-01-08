@@ -34,7 +34,7 @@ open class EntityDescription : JPanel() {
         sellButton.text = "Sell"
         sellButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
-                entity?.let{ it.owner.removeEntity(it) }
+                entity?.let{ it.owner.sellEntity(it) }
             }
         })
         sellButton.isFocusable = false

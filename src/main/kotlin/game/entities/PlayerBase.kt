@@ -13,6 +13,8 @@ import java.awt.event.MouseEvent
 class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
     override val factory get() = Factory
 
+    override var selable = false
+
     var maxBuildDistance = 10
 
     private val selectedBuild get() = buildMenu.selected

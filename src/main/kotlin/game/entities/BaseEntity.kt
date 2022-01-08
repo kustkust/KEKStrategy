@@ -16,6 +16,8 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
      */
     val selected get() = owner.selectedBuild == this
 
+    open var selable = true
+
     /**
      * Максимальный запас здоровья сущности
      */
@@ -159,11 +161,6 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     open fun updateOwnerInvestigatedArea() =
         iterateInvestigatedArea { owner.investigatedArea[it] = ObservableStatus.Investigated }
 
-    /**
-     * Обновляет территорию, которую видит владелец
-     */
-    open fun updateOwnerObservableArea() =
-        iterateInvestigatedArea { owner.observableArea[it] = ObservableStatus.Observable }
 
     /**
      * Прокачивает юнита, если это возможно
