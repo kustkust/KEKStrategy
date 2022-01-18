@@ -1,6 +1,6 @@
 package game
 
-import game.entities.PlayerBase
+import game.entities.builds.PlayerBase
 import utility.*
 import java.awt.Color
 import java.awt.Graphics
@@ -54,18 +54,22 @@ class TechnologyTree(val owner: Player) {
             g.color = if (isOpen) Color.GREEN else if (isOpenable) Color.YELLOW else Color.GRAY
             g.fillRect(pos, size)
             g.color = Color.black
-            g.drawMultiString(name + "\n" + cost.costToString(), pos)
+            g.drawMultiString(name + "\n" + cost.costToMultiRowString(), pos)
         }
     }
 
     fun mouseClicked(ev: MouseEvent) {
         when (ev.button) {
-            MouseEvent.BUTTON1 ->
-                for ((_, t) in technologies)
-                    if (ev.pos in t.bounds)
-                        t.open(owner)
+            MouseEvent.BUTTON1 -> for ((_, t) in technologies) {
+                if (ev.pos in t.bounds) {
+                    t.open(owner)
+                    onTechnologyOpened(t to owner)
+                }
+            }
         }
     }
+
+    val onTechnologyOpened = Event1<Pair<Technology, Player>>()
 
     private fun baseIterate(
         techs: List<Technology>,

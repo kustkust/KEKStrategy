@@ -1,7 +1,9 @@
-package game
+package game.map
 
-import game.entities.BaseBuild
-import game.entities.BaseUnit
+import game.G
+import game.Player
+import game.entities.builds.BaseBuild
+import game.entities.units.BaseUnit
 import graphics.Animation
 import kotlinx.serialization.Transient
 import utility.*
@@ -20,6 +22,9 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
             setupNeiAnimation()
         }
 
+    val movePointCost: Int
+        get() = type.movePointCost
+
     val height: Int
         get() = type.height
 
@@ -31,7 +36,7 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
 
     @Transient
     var build: BaseBuild? = null
-    val pixelBounds get() = Rect(pos * G.map.cs, Vector(G.map.cs, G.map.cs))
+    val pixelBounds get() = Rect(pos * C.cs, Vector(C.cs, C.cs))
 
     val buildsShadow = mutableMapOf<Player, Animation>()
     val unitsShadow = mutableMapOf<Player, Animation>()
@@ -119,7 +124,7 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
         if (G.map.showPerlin) {
             val c = (255 * noise).toInt()
             g.color = Color(c, c, c)
-            g.fillRect(p, Vector(G.map.cs, G.map.cs))
+            g.fillRect(p, Vector(C.cs, C.cs))
             g.color = Color.red
             g.drawString(noise.toString(), p.x + 5, p.y + 10)
         }
@@ -153,10 +158,16 @@ class Cell(val pos: Vector, type_: Type = Type.Water) {
      * @param visibleHeight высота окружения на клетке, должна быть больше чем [height]
      * @param color цвет клетки, используется на миникарте
      */
-    enum class Type(val movePointCost: Int, val height: Int, val visibleHeight: Int, val color: Color) {
-        Water(2, 0, 0, Color(0, 191, 255)),
+    enum class Type(
+        val movePointCost: Int,
+        val height: Int,
+        val visibleHeight: Int,
+        val color: Color,
+        val chance: Double = 1.0
+    ) {
+        Water(2, 0, 0, Color(0, 191, 255), 2.0),
         Ground(1, 1, 1, Color(0, 255, 0)),
-        Forest(2, 1, 2, Color(0, 128, 0)),
+        Forest(2, 1, 2, Color(0, 192, 0)),
         Hills(3, 2, 2, Color(0, 128, 0)),
         Mountain(3, 3, 3, Color(128, 128, 128));
 

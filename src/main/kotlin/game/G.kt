@@ -1,10 +1,13 @@
 package game
 
-import game.entities.PlayerBase
+import game.entities.builds.PlayerBase
+import game.map.Cell
+import game.map.GameMap
 import gameinterface.MainWindow
 import graphics.AnimationManager
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import utility.C
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.event.KeyEvent
@@ -68,7 +71,7 @@ object G {
             map = GameMap()
             map.generateMap(40, 20)
         } else {
-            val s = File("${Paths.maps}/$selectedMapId.json").bufferedReader().readText()
+            val s = File("${C.Paths.maps}/$selectedMapId.json").bufferedReader().readText()
             map = Json.decodeFromString(s)
             map.initPLayers()
         }
@@ -236,8 +239,8 @@ object G {
 
     var musicState = MusicState.On
 
-    private val menuMusic = AudioSystem.getAudioInputStream(File("${Paths.music}/Adding-the-Sun.wav"))
-    private val gameMusic = AudioSystem.getAudioInputStream(File("${Paths.music}/Pleasant-Porridge.wav"))
+    private val menuMusic = AudioSystem.getAudioInputStream(File("${C.Paths.music}/Adding-the-Sun.wav"))
+    private val gameMusic = AudioSystem.getAudioInputStream(File("${C.Paths.music}/Pleasant-Porridge.wav"))
     private val menuMusicClip = AudioSystem.getClip()
     private val gameMusicClip = AudioSystem.getClip()
 
@@ -255,14 +258,6 @@ object G {
                 menuMusicClip.loop(Clip.LOOP_CONTINUOUSLY)
             }
         }
-    }
-
-    object Paths {
-        const val resource = "./src/main/resources"
-        const val animation = "$resource/graphics/animations"
-        const val menu = "$resource/graphics/menuImages"
-        const val maps = "$resource/maps"
-        const val music = "$resource/music"
     }
 
     /**

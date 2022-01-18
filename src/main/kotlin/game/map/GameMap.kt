@@ -1,9 +1,12 @@
-package game
+package game.map
 
-import game.entities.Barracks
+import game.Direction
+import game.G
+import game.Player
+import game.entities.builds.Barracks
 import game.entities.BaseEntity
-import game.entities.MeleeUnit
-import game.entities.PlayerBase
+import game.entities.units.MeleeUnit
+import game.entities.builds.PlayerBase
 import kotlinx.serialization.Transient
 import utility.*
 import java.awt.BasicStroke
@@ -53,13 +56,13 @@ class GameMap {
             field = newT
             cellTranslationChanged(field)
         }
-    val cellTranslationChanged = Event<Vector>()
+    val cellTranslationChanged = Event1<Vector>()
 
     /**
      * Размер одной клетки в пикселях
      */
-    @Transient
-    val cs = 64
+    val cs
+        get() = C.cs
 
     /**
      * Текстура для рисования тумана войны
@@ -347,7 +350,7 @@ class GameMap {
                     fCells[ncp].flag == AStarF.No
                 ) {
                     fCells[ncp].flag = AStarF.Visit
-                    fCells[ncp].l = fCells[cur].l + cells[ncp].type.movePointCost
+                    fCells[ncp].l = fCells[cur].l + cells[ncp].movePointCost
                     fCells[ncp].el = ncp.cellDistance(end)
                     fCells[ncp].from = dir.oposite
                     fCells[ncp].gen = fCells[cur].gen + 1
@@ -404,7 +407,7 @@ class GameMap {
         val p2 = Vector(width - 2, height - 2)
 
         //generateMapByTwoPoints(p1, 4, p2, 2, 1)
-        generateMapByPerlin(5)
+        generateMapByPerlin(3)
         setAnimation()
 
         initPLayers()
@@ -443,8 +446,10 @@ class GameMap {
     }
 
     private fun generateMapByPerlin(step: Int) {
-        val perlinSize = size / step
-        val perlinGrid = makeMatrix(perlinSize + Vector.DownRight) {
+        val perlinSize = size / step + Vector.DownRight
+        if (size.x % step != 0) perlinSize.x += 1
+        if (size.y % step != 0) perlinSize.y += 1
+        val perlinGrid = makeMatrix(perlinSize) {
             VectorR.byAngleAndRadius(2 * kotlin.math.PI * Random.nextFloat(), 1.0)
         }
         val norm = sqrt(2.0) * step / 2
@@ -465,10 +470,23 @@ class GameMap {
 
             val rawNoise = l + t.x * (r - l)
             val normaliseNoise = (rawNoise + norm) / norm / 2 //должно быть от 0 до 1
-            var cellType = floor(normaliseNoise * cellTypes.size).toInt()
-            if (cellType >= cellTypes.size) cellType = cellTypes.size - 1
-            cells[p].type = cellTypes[cellType]
             cells[p].noise = normaliseNoise
+            val weightedMode = true
+            if(weightedMode) {
+                val chanceSum = cellTypes.sumOf { it.chance }
+                var weightNoise = normaliseNoise * chanceSum
+                for (type in cellTypes) {
+                    if (weightNoise < type.chance) {
+                        cells[p].type = type
+                        break
+                    }
+                    weightNoise -= type.chance
+                }
+            } else {
+                var cellType = floor(normaliseNoise * cellTypes.size).toInt()
+                if (cellType >= cellTypes.size) cellType = cellTypes.size - 1
+                cells[p].type = cellTypes[cellType]
+            }
         }
     }
 }

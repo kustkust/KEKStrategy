@@ -1,4 +1,4 @@
-package game.entities
+package game.entities.builds
 
 import game.G
 import game.Player

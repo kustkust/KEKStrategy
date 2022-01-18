@@ -1,9 +1,10 @@
 package game
 
-import game.entities.BaseBuild
+import game.entities.builds.BaseBuild
 import game.entities.BaseEntity
-import game.entities.BaseUnit
-import game.entities.BaseWall
+import game.entities.units.BaseUnit
+import game.entities.builds.BaseWall
+import game.map.ObservableStatus
 import utility.*
 import java.awt.Color
 import java.awt.Graphics
@@ -86,17 +87,17 @@ class Player(val name: String) {
     }
 
     fun changeResource(r: ResourceType, value: Int) {
+        val old = resource
         resource[r] = resource[r]!! + value
+        onResourceChanged.invoke(this, old, resource)
     }
+
+    val onResourceChanged = Event3<Player, Cost, Cost>()
 
     /**
      * Цвет игрока, отражается на юнитах и зданиях
      */
     var color: Color = Color.RED
-
-    fun mousePressed(ev: MouseEvent) {
-
-    }
 
     /**
      * Обработка нажатий клавиш мыши
@@ -105,14 +106,13 @@ class Player(val name: String) {
         var doSomething = false
         when (ev.button) {
             BUTTON1 -> {
-                if (isTechOpen) {
-                    doSomething = true
-                    technologies.mouseClicked(ev)
-                }
                 val pos = G.map.selectedCellPos
                 val u = G.map[pos].unit
                 val b = G.map[pos].build
-                if (own(u) && own(b)) {
+                if (isTechOpen) {
+                    technologies.mouseClicked(ev)
+                    doSomething = true
+                } else if (own(u) && own(b)) {
                     if (selectedUnit == u) {
                         selectedBuild = b
                     } else {
@@ -142,9 +142,9 @@ class Player(val name: String) {
 
     fun keyClicked(ev: KeyEvent) {
         when (ev.keyCode) {
-            VK_Q -> selectedEntity = null
+            VK_Q -> if (selectedEntity?.onUnselected() == true) selectedEntity = null
             VK_T -> isTechOpen = !isTechOpen
-            VK_R -> selectedEntity?.let { sellEntity(it)}
+            VK_R -> selectedEntity?.let { sellEntity(it) }
         }
         selectedEntity?.keyClicked(ev)
     }
@@ -289,8 +289,8 @@ class Player(val name: String) {
 
     /**
      * Содержит информацию об исследованной игроком территории, каждая клетка
-     * может иметь значение либо game.ObservableStatus.NotInvestigated либо
-     * game.ObservableStatus.Investigated
+     * может иметь значение либо game.map.ObservableStatus.NotInvestigated либо
+     * game.map.ObservableStatus.Investigated
      */
     var investigatedArea =
         makeMatrix(G.map.size) { ObservableStatus.NotInvestigated }

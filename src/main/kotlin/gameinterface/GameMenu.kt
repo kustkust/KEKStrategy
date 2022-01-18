@@ -1,7 +1,8 @@
 package gameinterface
 
 import game.G
-import game.GameMap
+import game.map.GameMap
+import utility.C
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
@@ -15,7 +16,7 @@ import javax.swing.JPanel
 
 class GameMenu(winWidth: Int, winHeight: Int) {
     //во имя главного меню
-    val menuPanel = ImagePanel("${G.Paths.menu}/KekStratMenuPic.png")
+    val menuPanel = ImagePanel("${C.Paths.menu}/KekStratMenuPic.png")
     //private val menuLabel = JLabel("KEKStrategy")
 
     //#660800 dark red
@@ -29,7 +30,7 @@ class GameMenu(winWidth: Int, winHeight: Int) {
     private var muteButton = GameButton()
 
     //во имя окна выбора карты
-    val mapChoosePanel = ImagePanel("${G.Paths.menu}/KekStratMapChoosePic.png")
+    val mapChoosePanel = ImagePanel("${C.Paths.menu}/KekStratMapChoosePic.png")
 
     // private val mapChooseLabel = JLabel("Choose your map")
     private val mapChooseButtons = listOf(
@@ -48,12 +49,12 @@ class GameMenu(winWidth: Int, winHeight: Int) {
     )
 
     var muteButtonImg = listOf(
-        ImageIcon("${G.Paths.menu}/Mute1.png"), // RedOn
-        ImageIcon("${G.Paths.menu}/Mute2.png"), //1 DarkRedON
-        ImageIcon("${G.Paths.menu}/Mute3.png"), //2 GrayOn
-        ImageIcon("${G.Paths.menu}/Mute4.png"), //3 RedOff
-        ImageIcon("${G.Paths.menu}/Mute5.png"),  //4 DarkRedOff
-        ImageIcon("${G.Paths.menu}/Mute6.png"),  //4 GrayOff
+        ImageIcon("${C.Paths.menu}/Mute1.png"), // RedOn
+        ImageIcon("${C.Paths.menu}/Mute2.png"), //1 DarkRedON
+        ImageIcon("${C.Paths.menu}/Mute3.png"), //2 GrayOn
+        ImageIcon("${C.Paths.menu}/Mute4.png"), //3 RedOff
+        ImageIcon("${C.Paths.menu}/Mute5.png"),  //4 DarkRedOff
+        ImageIcon("${C.Paths.menu}/Mute6.png"),  //4 GrayOff
     )
 
     //во имя меню паузы

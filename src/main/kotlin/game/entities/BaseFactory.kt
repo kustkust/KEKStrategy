@@ -1,6 +1,6 @@
 package game.entities
 
-import game.Cell
+import game.map.Cell
 import game.Cost
 import game.G
 import game.Player
@@ -16,7 +16,7 @@ import java.awt.Color
 interface BaseFactory {
     /**
      * В производных классах должен создавать сущность определённого типа,
-     * к примеру MeleeUnitFactory возвращает game.entities.MeleeUnit
+     * к примеру MeleeUnitFactory возвращает game.entities.units.MeleeUnit
      */
     fun createEntity(owner: Player, pos: Vector): BaseEntity
 
@@ -25,12 +25,12 @@ interface BaseFactory {
     /**
      * Рисует превью сущности для меню, к примеру меню создания юнитов
      */
-    fun getPreview(color: Color) =
+    fun getPreview(color: Color, scale: Int = 2) =
         animationPreviewCash.getOrPut(color) {
             val tmp = G.animationManager.getAnimation(entityName, color)
             tmp.run = false
             tmp
-        }
+        }.apply { this.scale = scale }
 
     /**
      * Возвращает стоимость создаваемого объекта

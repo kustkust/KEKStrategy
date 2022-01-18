@@ -1,15 +1,15 @@
 package utility
 
-import game.Cell
+import game.map.Cell
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Polygon
 import java.awt.event.MouseEvent
 import kotlin.math.*
 
-fun Int.sqr(): Int = this*this
-fun Float.sqr(): Float = this*this
-fun Double.sqr(): Double = this*this
+fun Int.sqr(): Int = this * this
+fun Float.sqr(): Float = this * this
+fun Double.sqr(): Double = this * this
 
 typealias Matrix<T> = ArrayList<ArrayList<T>>
 
@@ -129,6 +129,35 @@ fun <T, R> Iterable<T>.filterMap(pred: (T) -> Boolean, transform: (T) -> R): Lis
         }
     }
     return ar
+}
+
+fun <K, V> Map<K, V>.joinToString(
+    separator: CharSequence = ", ",
+    keyValueSeparator: CharSequence = "=",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "...",
+    transform: ((Map.Entry<K,V>) -> CharSequence)? = null
+): String {
+    val buffer = StringBuilder()
+    buffer.append(prefix)
+    var count = 0
+    for (element in this) {
+        if (++count > 1) buffer.append(separator)
+        if (limit < 0 || count <= limit) {
+            if(transform == null) {
+                buffer.append(element.key)
+                buffer.append(keyValueSeparator)
+                buffer.append(element.value)
+            } else {
+                buffer.append(transform(element))
+            }
+        } else break
+    }
+    if (limit in 0 until count) buffer.append(truncated)
+    buffer.append(postfix)
+    return buffer.toString()
 }
 
 fun <T> MutableList<T>.copy() = ArrayList<T>(this)

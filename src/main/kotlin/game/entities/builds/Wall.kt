@@ -1,6 +1,8 @@
-package game.entities
+package game.entities.builds
 
 import game.*
+import game.entities.BaseFactory
+import game.map.Cell
 import graphics.Animation
 import utility.Vector
 import java.awt.Color
@@ -32,8 +34,8 @@ class Wall(
         override fun createEntity(owner: Player, pos: Vector) = Wall(owner, pos)
         override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override fun getPreview(color: Color) =
-            super.getPreview(color).apply { curTagName = "LR" }
+        override fun getPreview(color: Color, scale: Int) =
+            super.getPreview(color, scale).apply { curTagName = "LR" }
 
         override val entityName = Wall::class.simpleName ?: ""
 

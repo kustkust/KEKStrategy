@@ -1,12 +1,16 @@
-package game.entities
+package game.entities.builds
 
-import game.Cell
+import game.G
 import game.Player
 import game.ResourceType
+import game.entities.BaseFactory
 import game.makeCost
+import game.map.Cell
 import graphics.Animation
 import utility.Vector
+import utility.pos
 import java.awt.Color
+import java.awt.event.MouseEvent
 
 class Sawmill(owner: Player, pos: Vector) : BaseBuild(owner, pos) {
     override val factory get() = Factory
@@ -20,6 +24,13 @@ class Sawmill(owner: Player, pos: Vector) : BaseBuild(owner, pos) {
         get() = Factory.allowedCells
     override val cost
         get() = Factory.cost
+
+    override fun mouseClicked(ev: MouseEvent) {
+        if (pos.cellDistance(G.map.selectedCellPos) < 3 && G.map.selectedCell.type == Cell.Type.Forest) {
+            owner.changeResource(ResourceType.Tree, 10)
+            G.map.selectedCell.type = Cell.Type.Ground
+        }
+    }
 
     object Factory : BaseFactory {
         override fun createEntity(owner: Player, pos: Vector) = Sawmill(owner, pos)

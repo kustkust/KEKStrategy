@@ -1,24 +1,32 @@
 package gameinterface
 
+import game.G
+import game.Player
+import game.costToMultiRowString
 import game.entities.BaseFactory
-import utility.Event
+import utility.C
+import utility.Event1
+import utility.Vector
+import utility.drawMultiString
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Graphics
 import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 
 
-class GameList: JScrollPane() {
+class GameList : JScrollPane() {
     var color = Color.white
         set(value) {
             field = value
             repaint()
         }
-    private val innerList = JList<BaseFactory>()
+    val player: Player? get() = G.curPlayer
+    private val innerList =JList<BaseFactory>()
     val selected: BaseFactory?
         get() = innerList.selectedValue
-    val onSelected = Event<ListSelectionEvent>()
+    val onSelected = Event1<ListSelectionEvent>()
     fun setFactories(l: List<BaseFactory>) {
         val tmp = DefaultListModel<BaseFactory>()
         l.forEachIndexed { i, bf ->
@@ -26,50 +34,68 @@ class GameList: JScrollPane() {
         }
         innerList.model = tmp
     }
+    var isItemsSelectable = true
+
+    fun unselect() = innerList.clearSelection()
+
+    val iconSize get() = C.cs / 2
 
     init {
+        isFocusable = false
+        getVerticalScrollBar().unitIncrement = 32
+        border = null
+        preferredSize = Dimension(128, C.cs * 3)
+        //minimumSize = preferredSize
+        background = null
         setViewportView(innerList)
-
-        innerList.cellRenderer = MyCellRenderer()
-        innerList.addListSelectionListener {onSelected(it)}
-        minimumSize = Dimension(100,100)
-    }
-
-    private class MyCellRender1(var color: Color) : JPanel(), ListCellRenderer<BaseFactory> {
-        override fun getListCellRendererComponent(
-            list: JList<out BaseFactory>,
-            value: BaseFactory,
-            index: Int,
-            isSelected: Boolean,
-            cellHasFocus: Boolean
-        ): Component {
-            setBounds(0,0,100,64)
-            /*value.getPreview(color).paint(graphics, Vector(0,0))
-            graphics.drawMultiString(value.cost.costToString(), 64,0)
-            if (isSelected) {
-                graphics.drawRect(0,0,100,64)
-            }*/
-            return this
+        innerList.background = Color.gray
+        innerList.addListSelectionListener {
+            onSelected(it)
+            if (!isItemsSelectable) {
+                unselect()
+            }
         }
-    }
+        innerList.isFocusable = false
+        innerList.cellRenderer = object : JPanel(), ListCellRenderer<BaseFactory> {
+            lateinit var value: BaseFactory
+            var isSelected = false
+            var cellHasFocus = false
 
-    internal class MyCellRenderer : JLabel(), ListCellRenderer<Any?> {
-        init {
-            isOpaque = true
-        }
+            init {
+                isFocusable = false
+                isOpaque = true
+                preferredSize = Dimension(110, C.cs / 2)
+                //minimumSize = preferredSize
+            }
 
-        override fun getListCellRendererComponent(
-            list: JList<*>?,
-            value: Any?,
-            index: Int,
-            isSelected: Boolean,
-            cellHasFocus: Boolean
-        ): Component {
-            if(graphics == null) println("kek")
-            text = value.toString()
-            background = if (isSelected) Color.red else Color.white
-            foreground = if (isSelected) Color.white else Color.black
-            return this
+            override fun getListCellRendererComponent(
+                list: JList<out BaseFactory>,
+                value: BaseFactory,
+                index: Int,
+                isSelected: Boolean,
+                cellHasFocus: Boolean
+            ): Component {
+                this.value = value
+                this.isSelected = isSelected
+                this.cellHasFocus = cellHasFocus
+                return this
+            }
+
+            override fun paint(g: Graphics) {
+                value.getPreview(color, 1).paint(g, Vector.Zero)
+                player?.let { player ->
+                    if (!value.isOpen(player)) {
+                        g.drawImage(
+                            G.map.shadow,
+                            0, 0, iconSize, iconSize,
+                            0, 0, iconSize, iconSize,
+                            null
+                        )
+                    }
+                    g.color = if(player.canPay(value.cost)) Color.black else Color.red
+                    g.drawMultiString(value.cost.costToMultiRowString(), iconSize, 0)
+                }
+            }
         }
     }
 }

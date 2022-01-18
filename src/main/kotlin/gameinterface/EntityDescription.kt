@@ -1,8 +1,10 @@
 package gameinterface
 
-import game.entities.Barracks
+import game.G
 import game.entities.BaseEntity
-import game.entities.BaseUnit
+import game.entities.builds.Barracks
+import game.entities.builds.PlayerBase
+import game.entities.units.BaseUnit
 import java.awt.Color
 import java.awt.Component
 import java.awt.event.MouseAdapter
@@ -25,37 +27,66 @@ open class EntityDescription : JPanel() {
 
     private val sellButton = JButton()
 
-    init {
+    val actionList = GameList()
+
+    fun init() {
+        isFocusable = false
         background = Color.gray
         layout = VerticalLayout()
+
         add(entityName)
         add(entityHP)
         add(unitAP)
         sellButton.text = "Sell"
         sellButton.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
-                entity?.let{ it.owner.sellEntity(it) }
+                entity?.let { it.owner.sellEntity(it) }
             }
         })
+        sellButton.isVisible = true
         sellButton.isFocusable = false
         add(sellButton)
+        add(actionList)
+
+        G.players.forEach { player ->
+            player.technologies.onTechnologyOpened += { repaint() }
+        }
     }
 
-    open fun setEntityDescription(entity_: BaseEntity) {
-        entity = entity_
+    open fun setEntityDescription(entity: BaseEntity) {
+        this.entity = entity
+        entityName.text = entity.factory.entityName
 
-        entity?.let { entity ->
-            entityName.text = entity.factory.entityName
+        setEntityHp(0)
+        entity.curHpChanged += setEntityHp
 
-            setEntityHp(0)
-            entity.curHpChanged += setEntityHp
-
-            if (entity is BaseUnit) {
+        when (entity) {
+            is BaseUnit -> {
                 setUnitAp(0)
                 entity.remMovePointsChanged += setUnitAp
                 unitAP.isVisible = true
-            } else {
-                unitAP.isVisible = false
+            }
+            else -> unitAP.isVisible = false
+        }
+
+        actionList.onSelected.clear()
+        when (entity) {
+            is PlayerBase -> {
+                actionList.setFactories(entity.buildsList)
+                actionList.isItemsSelectable = true
+                actionList.onSelected += { entity.selectedBuild = actionList.selected }
+                actionList.color = entity.owner.color
+                actionList.isVisible = true
+            }
+            is Barracks -> {
+                actionList.setFactories(entity.unitsList)
+                actionList.isItemsSelectable = false
+                actionList.onSelected += { entity.spawnUnit(it.firstIndex) }
+                actionList.color = entity.owner.color
+                actionList.isVisible = true
+            }
+            else -> {
+                actionList.isVisible = false
             }
         }
         validate()
@@ -63,9 +94,7 @@ open class EntityDescription : JPanel() {
 
     open fun setEmptyDescription() {
         entityName.text = ""
-
         entityHP.text = ""
-
         unitAP.text = ""
     }
 

@@ -1,13 +1,22 @@
-package game.entities
+package game.entities.units
 
 import game.*
+import game.entities.BaseEntity
+import game.entities.BaseFactory
+import game.entities.builds.Wall
+import game.map.Cell
 import graphics.Animation
+import utility.C
 import utility.Vector
 import java.awt.Color
 import java.awt.Graphics
 import kotlin.math.absoluteValue
 
 class MeleeUnit(owner: Player, pos: Vector) : BaseUnit(owner, pos) {
+    init {
+        observableRadius = 10
+    }
+
     override val factory get() = Factory
 
     var damage = Factory.baseDamage
@@ -48,7 +57,7 @@ class MeleeUnit(owner: Player, pos: Vector) : BaseUnit(owner, pos) {
 
     override fun paint(g: Graphics) {
         super.paint(g)
-        val cs = G.map.cs
+        val cs = C.cs
         val p = paintPos
         g.color = Color.black
         g.drawString(curHp.toString(), p.x + 1, p.y + g.font.size)
@@ -59,8 +68,8 @@ class MeleeUnit(owner: Player, pos: Vector) : BaseUnit(owner, pos) {
         override fun createEntity(owner: Player, pos: Vector) = MeleeUnit(owner, pos)
         override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override fun getPreview(color: Color) =
-            super.getPreview(color).apply { curTagName = "IDL" }
+        override fun getPreview(color: Color, scale: Int) =
+            super.getPreview(color, scale).apply { curTagName = "IDL" }
 
         override val entityName = MeleeUnit::class.simpleName ?: ""
         const val maxLVL = 3

@@ -1,13 +1,16 @@
-package game.entities
+package game.entities.builds
 
 import game.*
-import gameinterface.CreateMenu
+import game.entities.BaseEntity
+import game.entities.BaseFactory
+import game.map.Cell
+import game.map.ObservableStatus
 import graphics.Animation
+import utility.C
 import utility.Vector
 import utility.get
 import java.awt.Color
 import java.awt.Graphics
-import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 
 class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
@@ -17,9 +20,17 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
 
     var maxBuildDistance = 10
 
-    private val selectedBuild get() = buildMenu.selected
+    var selectedBuild: BaseFactory? = null
+        get() = field
+        set(value) {
+            if (value == null) {
+                field = null
+            } else if (value.isOpen(owner)) {
+                field = value
+            }
+        }
 
-    private val buildsList = arrayListOf(
+    val buildsList = arrayListOf(
         Barracks.Factory,
         Mine.Factory,
         Wall.Factory,
@@ -29,7 +40,7 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
 
     override var height = 1
 
-    private val buildMenu = CreateMenu(buildsList, owner_)
+    //private val buildMenu = CreateMenu(buildsList, owner_)
 
     override fun paint(g: Graphics) {
         g.color = owner.color
@@ -41,13 +52,13 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
         if (selected && !owner.isTechOpen) {
             selectedBuild?.let { selectedBuild ->
                 val onMapPos = G.map.selectedCellPos
-                val mPos = (onMapPos - G.map.cellTranslation) * G.map.cs
+                val mPos = (onMapPos - G.map.cellTranslation) * C.cs
                 selectedBuild.getPreview(owner.color).paint(g, mPos)
                 g.color = if (canBuildOn(onMapPos) && owner.canPay(selectedBuild.cost))
                     Color.BLACK
                 else
                     Color.RED
-                g.drawRect(mPos.x, mPos.y, G.map.cs, G.map.cs)
+                g.drawRect(mPos.x, mPos.y, C.cs, C.cs)
             }
         }
     }
@@ -65,30 +76,19 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
         owner.resource.keys.forEach {
             owner.changeResource(it, 10)
         }
-        buildMenu.unselect()
+        selectedBuild = null
         return false
     }
 
     override fun mouseClicked(ev: MouseEvent) {
-        selectedBuild?.let { selectedBuild ->
-            val p = G.map.selectedCellPos
-            when (ev.button) {
-                MouseEvent.BUTTON1 ->
-                    if (canBuildOn(p) &&
-                        owner.pay(selectedBuild.cost)
-                    ) {
-                        //owner.addBuild(selectedBuild.createEntity(owner, p) as BaseBuild)
-                        selectedBuild.createEntity(owner, p)
-                    }
-                MouseEvent.BUTTON3 ->
-                    buildMenu.unselect()
+        when (ev.button) {
+            MouseEvent.BUTTON1 -> selectedBuild?.let { it ->
+                val p = G.map.selectedCellPos
+                if (canBuildOn(p) && owner.pay(it.cost)) {
+                    it.createEntity(owner, p)
+                }
             }
-        }
-    }
-
-    override fun keyClicked(ev: KeyEvent) {
-        if (selected) {
-            buildMenu.keyClicked(ev)
+            MouseEvent.BUTTON3 -> selectedBuild = null
         }
     }
 
@@ -100,14 +100,9 @@ class PlayerBase(owner_: Player, pos_: Vector) : BaseBuild(owner_, pos_) {
         }
     }
 
-    override fun onSelected() {
-        super.onSelected()
-        G.win.gameInterfacePanel.setBuildList(buildMenu)
-    }
-
-    override fun onUnselected() {
+    override fun onUnselected(): Boolean {
         super.onUnselected()
-        G.win.gameInterfacePanel.setBuildList(null)
+        return true
     }
 
     object Factory : BaseFactory {

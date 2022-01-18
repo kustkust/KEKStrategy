@@ -20,10 +20,12 @@ internal class VerticalLayout(var xSpace: Int = 0, var ySpace: Int = 0) : Layout
     override fun layoutContainer(container: Container) {
         var currentY = ySpace
         container.components.forEach {
-            val pref: Dimension = it.preferredSize
-            it.setBounds(xSpace, currentY, pref.width, pref.height)
-            currentY += ySpace
-            currentY += pref.height
+            if (it.isVisible) {
+                val pref: Dimension = it.preferredSize
+                it.setBounds(xSpace, currentY, pref.width, pref.height)
+                currentY += ySpace
+                currentY += pref.height
+            }
         }
     }
 

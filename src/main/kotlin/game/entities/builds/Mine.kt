@@ -1,6 +1,8 @@
-package game.entities
+package game.entities.builds
 
 import game.*
+import game.entities.BaseFactory
+import game.map.Cell
 import graphics.Animation
 import utility.Vector
 import java.awt.Color

@@ -1,10 +1,12 @@
-package game.entities
+package game.entities.units
 
-import game.Cell
+import game.map.Cell
 import game.Direction
 import game.G
 import game.Player
-import utility.Event
+import game.entities.BaseEntity
+import utility.C
+import utility.Event1
 import utility.Vector
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON3
@@ -18,7 +20,7 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) : BaseEntity(owner_, pos_)
     var remMovePoints: Int by Delegates.observable(maxMovePoints) { _, _, new ->
         remMovePointsChanged(new)
     }
-    val remMovePointsChanged = Event<Int>()
+    val remMovePointsChanged = Event1<Int>()
 
     private var maxAttackPerTurn = 1
 
@@ -38,9 +40,9 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) : BaseEntity(owner_, pos_)
     private fun move(dir: Direction): Boolean {
         val newPos = pos + dir.offset
         val newCell = G.map[newPos]
-        if (remMovePoints >= newCell.type.movePointCost && canMoveTo(newCell)) {
+        if (remMovePoints >= newCell.movePointCost && canMoveTo(newCell)) {
             onCell.unit = null
-            remMovePoints -= newCell.type.movePointCost
+            remMovePoints -= newCell.movePointCost
             pos = newPos
             newCell.unit = this
             updateOwnerInvestigatedArea()
@@ -61,7 +63,7 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) : BaseEntity(owner_, pos_)
         var curStep = 0
         moveTimer = Timer(oneStepTime / steps) {
             if (path.isNotEmpty() &&
-                remMovePoints >= G.map[this.pos + path.first().offset].type.movePointCost &&
+                remMovePoints >= G.map[this.pos + path.first().offset].movePointCost &&
                 canMoveTo(G.map[this.pos + path.first().offset])
             ) {
                 if (curStep == steps && move(path.first())) {
@@ -73,10 +75,10 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) : BaseEntity(owner_, pos_)
                     owner.updateObservableArea()
                 } else {
                     if (curStep == 0) {
-                        animation.curTagName = path.first().litera
+                        animation.curTagName = path.first().letter
                     }
                     curStep++
-                    paintSubTrans = path.first().offset * G.map.cs * curStep / (steps + 1)
+                    paintSubTrans = path.first().offset * C.cs * curStep / (steps + 1)
                 }
             } else {
                 moveTimer.stop()
@@ -108,7 +110,7 @@ abstract class BaseUnit(owner_: Player, pos_: Vector) : BaseEntity(owner_, pos_)
     override fun endTurn(): Boolean {
         animatedFinishMove()
         return path.isNotEmpty() &&
-                remMovePoints >= G.map[pos + path.first().offset].type.movePointCost &&
+                remMovePoints >= G.map[pos + path.first().offset].movePointCost &&
                 canMoveTo(G.map[pos + path.first().offset])
     }
 

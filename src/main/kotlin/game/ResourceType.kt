@@ -1,14 +1,18 @@
 package game
 
+import utility.joinToString
+
 typealias Cost = Map<ResourceType, Int>
 
-fun Cost.costToString(): String {
-    var resStr = ""
-    forEach {
-        resStr += it.key.name + ":" + it.value.toString() + "\n"
-    }
-    return resStr
-}
+fun Cost.costToMultiRowString() = joinToString(
+    separator = "\n",
+    keyValueSeparator = ":",
+)
+
+fun Cost.costToString() = joinToString(
+    separator = " ",
+    keyValueSeparator = ":",
+)
 
 fun makeCost(vararg cost: Pair<ResourceType, Int>) = mapOf(*cost)
 

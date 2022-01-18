@@ -1,6 +1,8 @@
 package game.entities
 
 import game.*
+import game.map.Cell
+import game.map.ObservableStatus
 import utility.*
 import java.awt.Graphics
 import java.awt.event.KeyEvent
@@ -23,7 +25,7 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
      */
     var maxHp = factory.maxHP
 
-    val curHpChanged = Event<Int>()
+    val curHpChanged = Event1<Int>()
 
     /**
      * Текущее здоровье сущности
@@ -40,7 +42,8 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     /**
      * Технология, требуемая для открытия данной сущности
      */
-    private val requiredTech get() = factory.requiredTechnology?.let { owner.technologies[it] }
+    private val requiredTech
+        get() = factory.requiredTechnology?.let { owner.technologies[it] }
 
     /**
      * Открыта ли в дереве технологий данная сущность
@@ -60,7 +63,7 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
      * Положение левого верхнего угла сущности на экране
      */
     open val paintPos: Vector
-        get() = (pos - G.map.cellTranslation) * G.map.cs
+        get() = (pos - G.map.cellTranslation) * C.cs
 
     var animation = G.animationManager.getAnimation(factory.entityName, owner.color)
 
@@ -100,9 +103,16 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
             G.win.gameInterfacePanel.setEntityDescription(this)
     }
 
-    open fun onUnselected() {
-        if (owner == G.curPlayer)
+    /**
+     * При нажатии кнопки Q сущность может самостоятельно на неё отреагировать, в таком
+     * случае функция возвращает false и сущность должна остаться выбранной, иначе
+     * возвращает true
+     */
+    open fun onUnselected(): Boolean {
+        if (owner == G.curPlayer) {
             G.win.gameInterfacePanel.setEmptyDescription()
+        }
+        return true
     }
 
     open fun onRemoving() {
@@ -129,7 +139,7 @@ abstract class BaseEntity(val owner: Player, var pos: Vector = Vector(0, 0)) {
     /**
      * Радиус, который видит сущность, расстояние по умолчанию считается как x+y
      */
-    private var observableRadius = 2
+    var observableRadius = 2
 
     /**
      * Высота сущности, нужна для расчёта видимой области

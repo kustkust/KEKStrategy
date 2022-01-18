@@ -1,12 +1,15 @@
-package game.entities
+package game.entities.builds
 
 import game.*
-import gameinterface.CreateMenu
+import game.entities.*
+import game.entities.units.BaseUnit
+import game.entities.units.Gnom
+import game.entities.units.MeleeUnit
+import game.map.Cell
 import graphics.Animation
 import utility.Vector
 import java.awt.Color
 import java.awt.Graphics
-import java.awt.event.KeyEvent
 
 class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
     BaseBuild(owner, pos) {
@@ -19,14 +22,8 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
     private var maxSpawnPerTurn = 1
     private var curSpawned = 1
     val unitsList = ArrayList(Factory.creatableUnits)
-    private val unitsMenu: CreateMenu = CreateMenu(unitsList, owner) { unitsMenu ->
-        if (unitsMenu.selectedIndex != -1) {
-            spawnUnit(unitsMenu.selectedIndex)
-            unitsMenu.unselect()
-        }
-    }
 
-    private fun spawnUnit(i: Int) {
+    fun spawnUnit(i: Int) {
         if (curSpawned > 0 &&
             onCell.unit == null &&
             unitsList[i].isOpen(owner) &&
@@ -44,32 +41,9 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
         g.drawString(curHp.toString(), p.x, p.y + g.font.size)
     }
 
-    //override fun paintInterface(g: Graphics) = unitsMenu.paint(g)
-
-    override fun onSelected() {
-        super.onSelected()
-        G.win.gameInterfacePanel.setBuildList(unitsMenu)
-    }
-
-    override fun onUnselected() {
-        super.onUnselected()
-        G.win.gameInterfacePanel.setBuildList(null)
-    }
-
     override fun newTurn() {
         super.newTurn()
         curSpawned = maxSpawnPerTurn
-    }
-
-    override fun keyClicked(ev: KeyEvent) {
-        /*if (ev.keyCode in VK_1..min(VK_9, unitsList.size + VK_1 - 1)) {
-            spawnUnit(ev.keyCode - VK_1)
-        }*/
-        unitsMenu.keyClicked(ev)
-        if (unitsMenu.selectedIndex != -1) {
-            spawnUnit(unitsMenu.selectedIndex)
-            unitsMenu.unselect()
-        }
     }
 
     object Factory : BaseFactory {
@@ -82,6 +56,6 @@ class Barracks(owner: Player, pos: Vector = Vector(0, 0)) :
         override val cost: Map<ResourceType, Int> = mapOf(ResourceType.Gold to 5)
         override var allowedCells: MutableList<Cell.Type> = mutableListOf(Cell.Type.Ground)
         override val maxHP: Int = 10
-        override val requiredTechnology: String = "game.entities.MeleeUnit"
+        override val requiredTechnology: String = "game.entities.units.MeleeUnit"
     }
 }

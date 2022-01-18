@@ -1,9 +1,11 @@
-package game.entities
+package game.entities.units
 
-import game.Cell
-import game.Cost
+import game.map.Cell
 import game.Player
 import game.ResourceType
+import game.entities.BaseEntity
+import game.entities.BaseFactory
+import game.entities.builds.Wall
 import graphics.Animation
 import utility.Vector
 import java.awt.Color
@@ -38,8 +40,8 @@ class Gnom(owner: Player, pos: Vector) : BaseUnit(owner, pos) {
         override fun createEntity(owner: Player, pos: Vector) = Gnom(owner, pos)
         override val animationPreviewCash = mutableMapOf<Color, Animation>()
 
-        override fun getPreview(color: Color) =
-            super.getPreview(color).apply { curTagName = "IDL" }
+        override fun getPreview(color: Color, scale: Int) =
+            super.getPreview(color, scale).apply { curTagName = "IDL" }
 
         override val entityName = Gnom::class.simpleName ?: ""
         const val maxLVL = 3

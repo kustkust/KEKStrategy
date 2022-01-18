@@ -2,7 +2,7 @@ package game
 
 import utility.Vector
 
-enum class Direction(val litera: String) {
+enum class Direction(val letter: String) {
     Up("U") {
         override val offset: Vector = Vector(0, -1)
     },

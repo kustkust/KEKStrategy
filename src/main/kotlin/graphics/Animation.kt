@@ -31,13 +31,13 @@ class Animation() {
         var duration: Int,
         var spriteSourceSize: Rect,
     ) {
-        fun paint(g: Graphics, p: Vector, source: BufferedImage) {
+        fun paint(g: Graphics, p: Vector, scale: Int, source: BufferedImage) {
             g.drawImage(
                 source,
-                p.x + spriteSourceSize.l * 2,
-                p.y + spriteSourceSize.t * 2,
-                p.x + spriteSourceSize.r * 2,
-                p.y + spriteSourceSize.b * 2,
+                p.x + spriteSourceSize.l * scale,
+                p.y + spriteSourceSize.t * scale,
+                p.x + spriteSourceSize.r * scale,
+                p.y + spriteSourceSize.b * scale,
                 frame.l, frame.t, frame.r, frame.b,
                 null,
             )
@@ -78,6 +78,8 @@ class Animation() {
     data class FrameTag(val from: Int, val to: Int, val direction: AnimDirect)
 
     lateinit var source: BufferedImage
+
+    var scale: Int = 2
 
     var tags = mutableMapOf<String, FrameTag>()
     var curTagName: String = DefaultTagName
@@ -168,7 +170,7 @@ class Animation() {
         }
     }
 
-    fun paint(g: Graphics, p: Vector) = curFrame.paint(g, p, source)
+    fun paint(g: Graphics, p: Vector) = curFrame.paint(g, p, scale, source)
 
     companion object {
         const val DefaultTagName = "__default"

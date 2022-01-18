@@ -1,6 +1,6 @@
 package graphics
 
-import game.Cell
+import game.map.Cell
 import game.G
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -15,7 +15,7 @@ import javax.swing.Timer
 class AnimationManager {
     val animations = mutableListOf<Animation>()
 
-    var lastTime = System.currentTimeMillis()
+    private var lastTime = System.currentTimeMillis()
     var delta = 0L
 
     private val timer: Timer = Timer(1000 / 30) {
@@ -27,20 +27,19 @@ class AnimationManager {
         }
         try {
             G.win.gameRenderPanel.repaint()
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
 
         }
     }
 
     private val textures: MutableMap<String, BufferedImage> = mutableMapOf()
 
-    fun getTexture(name: String) = textures.getOrPut(name) {
-        ImageIO.read(File("${G.Paths.animation}/$name"))
+    private fun getTexture(name: String) = textures.getOrPut(name) {
+        ImageIO.read(File("${C.Paths.animation}/$name"))
     }
 
-    fun getTexture(name: String, color: Color, frames: List<Pair<Rect, Rect>>): BufferedImage {
-        val fullName = "$name;$color"
-        if (!textures.containsKey(fullName)) {
+    private fun getTexture(name: String, color: Color, frames: List<Pair<Rect, Rect>>) =
+        textures.getOrPut("$name;$color") {
             val r = color.red
             val g = color.green
             val b = color.blue
@@ -48,7 +47,7 @@ class AnimationManager {
             val fg = Color(0, 255, 0, 0).rgb
             val fb = Color(0, 0, 255, 0).rgb
             val fa = Color(0, 0, 0, 255).rgb
-            val tmp = ImageIO.read(File("${G.Paths.animation}/$name"))
+            val tmp = ImageIO.read(File("${C.Paths.animation}/$name"))
             val imageData = IntArray(frames.first().first.w * frames.first().first.h)
             val maskData = IntArray(frames.first().first.w * frames.first().first.h)
             val resData = IntArray(frames.first().first.w * frames.first().first.h)
@@ -107,30 +106,19 @@ class AnimationManager {
                     null
                 )*/
             }
-            textures[fullName] = res
+            res
         }
-        return textures.getValue(fullName)
-    }
 
     private val animationCash: MutableMap<String, Animation> = mutableMapOf()
-    fun getAnimation(name: String): Animation {
-        if (!animationCash.containsKey(name)) {
-            animationCash[name] = loadAnimation(name)
-        }
-        return animationCash.getValue(name).copy()
-    }
+    fun getAnimation(name: String) =
+        animationCash.getOrPut(name) { loadAnimation(name) }.copy()
 
-    fun getAnimation(name: String, color: Color): Animation {
-        val fullName = "$name;$color"
-        if (!animationCash.containsKey(fullName)) {
-            animationCash[fullName] = loadAnimation(name, color)
-        }
-        return animationCash.getValue(fullName).copy()
-    }
+    fun getAnimation(name: String, color: Color) =
+        animationCash.getOrPut("$name;$color") { loadAnimation(name, color) }.copy()
 
     private fun loadAnimation(name: String): Animation {
         val a = Animation()
-        val path = "${G.Paths.animation}/$name.json"
+        val path = "${C.Paths.animation}/$name.json"
         val json = Json {
             ignoreUnknownKeys = true
         }
@@ -147,7 +135,7 @@ class AnimationManager {
 
     private fun loadAnimation(name: String, color: Color): Animation {
         val a = Animation()
-        val path = "${G.Paths.animation}/$name.json"
+        val path = "${C.Paths.animation}/$name.json"
         val json = Json {
             ignoreUnknownKeys = true
         }
@@ -170,19 +158,14 @@ class AnimationManager {
         return a
     }
 
-    fun getAnimation(name: String, d: Map<Cell.CellDir, Boolean>): Animation {
-        val fullName = "$name;${d.uls};${d.urs};${d.dls};${d.drs}"
-        if (!animationCash.containsKey(fullName)) {
-            animationCash[fullName] = loadAnimation(name, d)
-        }
-        return animationCash.getValue(fullName).copy()
-    }
+    fun getAnimation(name: String, d: Map<Cell.CellDir, Boolean>) =
+        animationCash.getOrPut("$name;${d.uls};${d.urs};${d.dls};${d.drs}") {
+            loadAnimation(name, d)
+        }.copy()
 
     private fun loadAnimation(name: String, d: Map<Cell.CellDir, Boolean>): Animation {
-        val path = "${G.Paths.animation}/$name.json"
-        val json = Json {
-            ignoreUnknownKeys = true
-        }
+        val path = "${C.Paths.animation}/$name.json"
+        val json = Json { ignoreUnknownKeys = true }
         val forRead: Animation.ForRead = json.decodeFromStream(File(path).inputStream())
         val t = getTexture(forRead.meta.image)
         val framesTag = { tagName: String ->
@@ -200,13 +183,13 @@ class AnimationManager {
         val urf = framesTag(d.urs)
         val dlf = framesTag(d.dls)
         val drf = framesTag(d.drs)
-        val drawCorner = { mf: Animation.FrameJson, f: Animation.FrameJson ->
+        val drawCorner = { mf_: Animation.FrameJson, f: Animation.FrameJson ->
             g.drawImage(
                 t,
-                mf.frame.l + f.spriteSourceSize.l,
-                mf.frame.t + f.spriteSourceSize.t,
-                mf.frame.l + f.spriteSourceSize.r,
-                mf.frame.t + f.spriteSourceSize.b,
+                mf_.frame.l + f.spriteSourceSize.l,
+                mf_.frame.t + f.spriteSourceSize.t,
+                mf_.frame.l + f.spriteSourceSize.r,
+                mf_.frame.t + f.spriteSourceSize.b,
                 f.frame.l, f.frame.t, f.frame.r, f.frame.b,
                 null
             )
@@ -229,11 +212,7 @@ class AnimationManager {
         return a
     }
 
-    fun start() {
-        timer.start()
-    }
+    fun start() = timer.start()
 
-    fun stop() {
-        timer.stop()
-    }
+    fun stop() = timer.stop()
 }
