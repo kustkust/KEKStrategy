@@ -1,7 +1,7 @@
 package gameinterface
 
 import game.G
-import game.ObservableStatus
+import game.map.ObservableStatus
 import utility.Vector
 import utility.drawRect
 import utility.matrixForEachIndexed
@@ -30,7 +30,8 @@ class MiniMap : JPanel() {
         }
     }
 
-    private val cellSize get() = Vector(size.width / scale, size.height / scale)
+    private val cellSize
+        get() = Vector(size.width / scale, size.height / scale)
 
     private val translation: Vector
         get() {
@@ -48,7 +49,8 @@ class MiniMap : JPanel() {
 
     init {
         addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) = G.map.centerOn(translation + e.pos / scale)
+            override fun mouseClicked(e: MouseEvent) =
+                G.map.centerOn(translation + e.pos / scale)
         })
     }
 
@@ -65,7 +67,10 @@ class MiniMap : JPanel() {
 
         G.map.cells.matrixForEachIndexed(p, s) { x, y, c ->
             if (G.curPlayer.observableArea[x][y] != ObservableStatus.NotInvestigated) {
-                g.color = c.type.color
+                g.color =
+                    if (c.unit != null) c.unit?.owner?.color
+                    else if (c.build != null) c.build?.owner?.color
+                    else c.type.color
                 g.fillRect((x - p.x) * scale, (y - p.y) * scale, scale, scale)
                 if (G.curPlayer.observableArea[x][y] == ObservableStatus.Investigated) {
                     g.drawImage(shadow, (x - p.x) * scale, (y - p.y) * scale, null)
